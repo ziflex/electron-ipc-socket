@@ -87,7 +87,7 @@ Closes a socket.
 Represents an wrapper for one or two Electron IPC objects.
 Exposes same public API.
 
-#### Constructor(input [, output])
+#### Constructor(input: IPC [, output: IPC])
 - ``input`` input IPC for listening to events.
 - ``output`` output IPC for sending messages and emitting envents. Optional. Input IPC is used by default.
 
