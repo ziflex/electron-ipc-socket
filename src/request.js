@@ -1,20 +1,26 @@
 import Symbol from 'es6-symbol';
-import _ from 'lodash';
-import createClass from 'legion-common/lib/utils/create-class';
-import DisposableMixin from 'legion-common/lib/runtime/disposable-mixin';
-import disposableDecorator from 'legion-common/lib/runtime/disposable-decorator';
-import { requires } from 'legion-common/lib/utils/contracts';
+import composeClass from 'compose-class';
+import DisposableMixin from 'disposable-mixin';
+import disposableDecorator from 'disposable-decorator';
 import uuid from 'uuid';
+import isFunction from 'is-function';
+import isError from 'is-error';
+import { requires, assert } from './assertions';
 
+const ERR_CALLBACK_TYPE = 'Callback must be a function';
 const FIELDS = {
     id: Symbol('id'),
     timestamp: Symbol('timestamp'),
     callback: Symbol('callback')
 };
 
-const Request = createClass({
+const Request = composeClass({
     mixins: [
-        DisposableMixin(_.values(FIELDS))
+        DisposableMixin([
+            FIELDS.id,
+            FIELDS.timestamp,
+            FIELDS.callback
+        ])
     ],
 
     decorators: [
@@ -23,6 +29,7 @@ const Request = createClass({
 
     constructor(callback) {
         requires('callback', callback);
+        assert(ERR_CALLBACK_TYPE, isFunction(callback));
 
         this[FIELDS.id] = uuid.v4();
         this[FIELDS.callback] = callback;
@@ -43,7 +50,17 @@ const Request = createClass({
     },
 
     reject(reason) {
-        this[FIELDS.callback](reason);
+        let err = reason;
+
+        if (!isError(reason)) {
+            if (reason) {
+                err = new Error(reason);
+            } else {
+                err = new Error('Uknown reason');
+            }
+        }
+
+        this[FIELDS.callback](err);
         this.dispose();
     }
 });

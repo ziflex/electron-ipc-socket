@@ -1,10 +1,19 @@
 import composeClass from 'compose-class';
 import { EventEmitter } from 'events';
 
+const NativeEvent = composeClass({});
+
+function send(channel, ...args) {
+    return this.emit(channel, new NativeEvent(), ...args);
+}
+
 const IPC = composeClass({
     constructor() {
         this.input = new EventEmitter();
+        this.input.send = send.bind(this.input);
+
         this.output = new EventEmitter();
+        this.output.send = send.bind(this.output);
     },
 
     on(channel, handler) {

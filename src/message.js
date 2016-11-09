@@ -1,9 +1,8 @@
 import Symbol from 'es6-symbol';
-import _ from 'lodash';
-import createClass from 'legion-common/lib/utils/create-class';
-import DisposableMixin from 'legion-common/lib/runtime/disposable-mixin';
-import disposableDecorator from 'legion-common/lib/runtime/disposable-decorator';
-import { requires } from 'legion-common/lib/utils/contracts';
+import composeClass from 'compose-class';
+import DisposableMixin from 'disposable-mixin';
+import disposableDecorator from 'disposable-decorator';
+import { requires } from './assertions';
 
 const FIELDS = {
     evt: Symbol('evt'),
@@ -13,9 +12,15 @@ const FIELDS = {
     callback: Symbol('callback')
 };
 
-const Message = createClass({
+const Message = composeClass({
     mixins: [
-        DisposableMixin(_.values(FIELDS))
+        DisposableMixin([
+            FIELDS.evt,
+            FIELDS.id,
+            FIELDS.type,
+            FIELDS.payload,
+            FIELDS.callback
+        ])
     ],
 
     decorators: [
@@ -54,6 +59,6 @@ const Message = createClass({
     }
 });
 
-export default function create(...args) {
-    return new Message(...args);
+export default function create() {
+    return new Message(...arguments);
 }

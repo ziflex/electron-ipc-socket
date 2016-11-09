@@ -1,26 +1,37 @@
 import Symbol from 'es6-symbol';
-import EventEmitter from 'eventemitter3';
-import _ from 'lodash';
-import Promise from 'bluebird';
-import createClass from 'legion-common/lib/utils/create-class';
-import DisposableMixin from 'legion-common/lib/runtime/disposable-mixin';
-import disposableDecorator from 'legion-common/lib/runtime/disposable-decorator';
-import { requires, assert } from 'legion-common/lib/utils/contracts';
-import Interval from 'legion-common/lib/time/interval';
+import composeClass from 'compose-class';
+import DisposableMixin from 'disposable-mixin';
+import disposableDecorator from 'disposable-decorator';
+import forEach from 'foreach';
+import isNil from 'is-nil';
+import isError from 'is-error';
+import isFunction from 'is-function';
+import { requires, assert } from './assertions';
+import Interval from './interval';
 import Request from './request';
 import Message from './message';
+import { Transport, isTransport } from './transport';
 
-const SOCKET_OPEN_ERR = 'Socket is already open';
-const SOCKET_CLOSED_ERR = 'Socket is already closed';
+const ERR_CHANNEL_TYPE = 'Channel must be non-empty string';
+const ERR_MESSAGE_NAME_TYPE = 'Message name must be a non-empty string';
+const ERR_HANDLER_TYPE = 'Handler must be a function';
+const ERR_MSG_HANDLER_NOT_UNIQ = 'There is already reigstered handler for message';
+const ERR_EVENT_TYPE = 'Unsupported event type';
+const ERR_PATH_TYPE = 'Path must be a non-empty string';
+const ERR_SOCKET_OPEN = 'Socket is already open';
+const ERR_SOCKET_CLOSED = 'Socket is already closed';
+
+const isString = i => typeof i === 'string';
+const isNonEmptyString = i => isString(i) && i.trim() !== '';
 
 const FIELDS = {
     channel: Symbol('channel'),
     transport: Symbol('transport'),
-    emitter: Symbol('emitter'),
     isOpen: Symbol('isOpen'),
     pendingRequests: Symbol('pendingRequests'),
     handlers: Symbol('handlers'),
     requestTimeout: Symbol('requestTimeout'),
+    cleanupInterval: Symbol('cleanupInterval'),
     interval: Symbol('interval')
 };
 
@@ -33,62 +44,69 @@ const METHODS = {
     handleRequest: Symbol('handleRequest')
 };
 
-function onDispose() {
-    this[FIELDS.emitter].removeAllListeners();
-
-    if (this.isOpen()) {
-        this.close();
+function finalize(instance) {
+    if (instance.isOpen()) {
+        instance.close();
     }
 }
 
-const Socket = createClass({
+const Socket = composeClass({
     mixins: [
-        DisposableMixin(_.values(FIELDS), onDispose)
+        DisposableMixin([
+            FIELDS.transport,
+            FIELDS.pendingRequests,
+            FIELDS.handlers,
+            FIELDS.interval
+        ], finalize)
     ],
 
     decorators: [
         disposableDecorator
     ],
 
-    constructor(channel, transport) {
+    constructor(channel, transport, settings = {}) {
         requires('channel', channel);
         requires('transport', transport);
+        assert(ERR_CHANNEL_TYPE, isNonEmptyString(channel));
 
         this[FIELDS.channel] = channel;
-        this[FIELDS.transport] = transport;
-        this[FIELDS.emitter] = new EventEmitter();
+        this[FIELDS.transport] = isTransport(transport) ? transport : Transport(transport);
         this[FIELDS.pendingRequests] = {};
-        this[FIELDS.handlers] = {};
+        this[FIELDS.handlers] = {
+            events: {},
+            requests: {}
+        };
         this[FIELDS.isOpen] = false;
-        this[FIELDS.requestTimeout] = 1000 * 60;
+        this[FIELDS.requestTimeout] = settings.timeout || 1000 * 60;
+        this[FIELDS.cleanupInterval] = settings.cleanup || 1000 * 60;
         this[FIELDS.interval] = Interval(() => {
             const pendingRequests = this[FIELDS.pendingRequests];
             const currentTimestamp = new Date().getTime();
             const requestTimeout = this[FIELDS.requestTimeout];
             const hanging = [];
 
-            _.forEach(pendingRequests, (request) => {
+            forEach(pendingRequests, (request) => {
                 if ((currentTimestamp - request.timestamp()) > requestTimeout) {
                     hanging.push(request);
                 }
             });
 
-            _.forEach(hanging, (request) => {
+            forEach(hanging, (request) => {
                 const id = request.id();
                 request.reject(new Error('Timeout'));
 
                 delete pendingRequests[id];
             });
-        }, 1000 * 60);
+        }, this[FIELDS.cleanupInterval]);
 
         this[METHODS.emit] = (event, payload) => {
-            transport.send(`${channel}`, event, payload);
+            transport.send(`${channel}:event`, event, payload);
         };
 
-        this[METHODS.request] = (req, path, payload) => {
+        this[METHODS.request] = (req, name, payload) => {
             this[FIELDS.pendingRequests][req.id()] = req;
 
-            transport.send(`${channel}:request`, req.id(), path, payload);
+            transport.send(`${channel}:request`, req.id(), name, payload);
         };
 
         this[METHODS.respond] = (evt, id, payload) => {
@@ -98,7 +116,15 @@ const Socket = createClass({
         };
 
         this[METHODS.handleEvent] = (evt, type, payload) => {
-            this[FIELDS.emitter].emit(`${channel}:${type}`, payload);
+            let handlers = this[FIELDS.handlers].events[type];
+
+            if (!handlers) {
+                handlers = this[FIELDS.handlers].events['*'];
+            }
+
+            if (handlers) {
+                forEach(handlers, handler => handler(payload));
+            }
         };
 
         this[METHODS.handleResponse] = (evt, id, payload) => {
@@ -106,7 +132,7 @@ const Socket = createClass({
             const request = requests[id];
 
             if (request) {
-                if (!_.isError(payload)) {
+                if (!isError(payload)) {
                     request.resolve(payload);
                 } else {
                     request.reject(payload);
@@ -116,19 +142,19 @@ const Socket = createClass({
             }
         };
 
-        this[METHODS.handleRequest] = (evt, id, type, payload) => {
-            const handlers = this[FIELDS.handlers];
-            let handler = handlers[type];
+        this[METHODS.handleRequest] = (evt, id, name, payload) => {
+            const handlers = this[FIELDS.handlers].requests;
+            let handler = handlers[name];
 
-            if (!_.isFunction(handler)) {
+            if (!isFunction(handler)) {
                 handler = handlers['*'];
             }
 
-            if (_.isFunction(handler)) {
-                return handler(Message(evt, id, type, payload, this[METHODS.respond]));
+            if (isFunction(handler)) {
+                return handler(Message(evt, id, name, payload, this[METHODS.respond]));
             }
 
-            return this[METHODS.respond](evt, id, new Error(`Message type not found: ${type}`));
+            return this[METHODS.respond](evt, id, new Error(`Message handler not found: ${name}`));
         };
     },
 
@@ -137,12 +163,12 @@ const Socket = createClass({
     },
 
     open() {
-        assert(SOCKET_OPEN_ERR, !this.isOpen());
+        assert(ERR_SOCKET_OPEN, !this.isOpen());
 
         const channel = this[FIELDS.channel];
         const transport = this[FIELDS.transport];
 
-        transport.on(`${channel}`, this[METHODS.handleEvent]);
+        transport.on(`${channel}:event`, this[METHODS.handleEvent]);
         transport.on(`${channel}:request`, this[METHODS.handleRequest]);
         transport.on(`${channel}:response`, this[METHODS.handleResponse]);
         this[FIELDS.interval].start();
@@ -151,49 +177,136 @@ const Socket = createClass({
         return this;
     },
 
-    sendMessage(name, payload) {
-        assert(SOCKET_CLOSED_ERR, this.isOpen());
+    send() {
+        assert(ERR_SOCKET_CLOSED, this.isOpen());
 
-        return Promise.fromCallback((done) => {
-            this[METHODS.request](Request(done), name, payload);
-        });
-    },
+        const name = arguments[0];
+        let payload = arguments[1];
+        let callback = arguments[2];
 
-    onMessage(name, handler) {
-        assert(
-            `Handler is already defined for message: ${name}`,
-            _.isNil(this[FIELDS.handlers][name])
-        );
+        requires('name', name);
+        assert(ERR_MESSAGE_NAME_TYPE, isNonEmptyString(name));
 
-        this[FIELDS.handlers][name] = handler;
+        if (isFunction(payload)) {
+            callback = payload;
+            payload = null;
+        }
 
-        return () => {
-            const handlers = this[FIELDS.handlers];
-
-            delete handlers[name];
-        };
-    },
-
-    emitEvent(type, payload) {
-        assert(SOCKET_CLOSED_ERR, this.isOpen());
-
-        this[METHODS.emit](type, payload);
+        if (isFunction(callback)) {
+            this[METHODS.request](Request(callback), name, payload);
+        } else {
+            this[METHODS.emit](name, payload);
+        }
 
         return this;
     },
 
-    onEvent(type, handler, once = false) {
-        const eventName = `${this[FIELDS.channel]}:${type}`;
+    on(path, handler) {
+        requires('path', path);
+        requires('handler', handler);
+        assert(ERR_PATH_TYPE, isNonEmptyString(path));
+        assert(ERR_HANDLER_TYPE, isFunction(handler));
 
-        if (once) {
-            this[FIELDS.emitter].once(eventName, handler);
-        } else {
-            this[FIELDS.emitter].on(eventName, handler);
+        const [type, name] = path.split(':');
+
+        /* eslint-disable indent */
+        switch (type) {
+            case 'message': {
+                const messageName = name || '*';
+                const handlers = this[FIELDS.handlers].requests;
+
+                assert(
+                    `${ERR_MSG_HANDLER_NOT_UNIQ}: ${messageName}`,
+                    isNil(handlers[messageName])
+                );
+
+                handlers[messageName] = handler;
+
+                break;
+            }
+            case 'event': {
+                const eventName = name || '*';
+                const handlers = this[FIELDS.handlers].events;
+
+                let event = handlers[eventName];
+
+                if (!event) {
+                    event = [];
+                    handlers[eventName] = event;
+                }
+
+                event.push(handler);
+
+                break;
+            }
+            default: {
+                throw new Error(`${ERR_EVENT_TYPE}: ${type}`);
+            }
+        }
+        /* eslint-enable */
+
+        return this;
+    },
+
+    off(path, handler) {
+        requires('path', path);
+        assert(ERR_PATH_TYPE, isNonEmptyString(path));
+
+        if (handler) {
+            assert(ERR_HANDLER_TYPE, isFunction(handler));
         }
 
-        return () => {
-            this[FIELDS.emitter].removeListener(eventName, handler);
-        };
+        const [type, name] = path.split(':');
+
+        /* eslint-disable indent */
+        switch (type) {
+            case 'message': {
+                const messageName = name || '*';
+
+                if (messageName === '*') {
+                    this[FIELDS.handlers].requests = {};
+                    break;
+                }
+
+                if (!handler) {
+                    delete this[FIELDS.handlers].requests[messageName];
+                }
+
+                break;
+            }
+            case 'event': {
+                const eventName = name || '*';
+
+                if (eventName === '*') {
+                    this[FIELDS.handlers].events = {};
+                    break;
+                }
+
+                const handlers = this[FIELDS.handlers].events[eventName];
+
+                if (!handlers) {
+                    break;
+                }
+
+                if (!handler) {
+                    handlers.length = 0;
+
+                    break;
+                }
+
+                const idx = handlers.indexOf(handler);
+
+                if (idx > 0) {
+                    handlers.splice(idx, 1);
+                }
+
+                break;
+            }
+            default: {
+                throw new Error(`${ERR_EVENT_TYPE}: ${type}`);
+            }
+        }
+        /* eslint-enable */
     },
 
     close() {
@@ -202,11 +315,11 @@ const Socket = createClass({
         const channel = this[FIELDS.channel];
         const transport = this[FIELDS.transport];
 
-        transport.removeListener(`${channel}`, this[METHODS.handleEvent]);
+        transport.removeListener(`${channel}:event`, this[METHODS.handleEvent]);
         transport.removeListener(`${channel}:request`, this[METHODS.handleRequest]);
         transport.removeListener(`${channel}:response`, this[METHODS.handleResponse]);
 
-        _.forEach(this[FIELDS.pendingRequests], (req) => {
+        forEach(this[FIELDS.pendingRequests], (req) => {
             req.reject(new Error('Connection lost'));
         });
 
@@ -218,6 +331,6 @@ const Socket = createClass({
     }
 });
 
-export default function create(...args) {
-    return new Socket(...args);
+export default function create() {
+    return new Socket(...arguments);
 }

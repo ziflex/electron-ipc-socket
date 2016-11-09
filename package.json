@@ -34,8 +34,10 @@
     "disposable-mixin": "^1.0.0",
     "es6-symbol": "^3.1.0",
     "foreach": "^2.0.5",
+    "is-error": "^2.2.1",
     "is-function": "^1.0.1",
-    "is-nil": "^1.0.1"
+    "is-nil": "^1.0.1",
+    "uuid": "^2.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
