@@ -2,7 +2,7 @@
 
 > Event based communication
 
-Two way communication layer on top Electron IPC system.
+Response-request abstraction on top of Electron IPC system.
 
 [![npm version](https://badge.fury.io/js/electron-ipc-socket.svg)](https://www.npmjs.com/package/electron-ipc-socket)
 [![Build Status](https://secure.travis-ci.org/ziflex/electron-ipc-socket.svg?branch=master)](http://travis-ci.org/ziflex/electron-ipc-socket)
