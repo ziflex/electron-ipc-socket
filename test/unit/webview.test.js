@@ -6,7 +6,7 @@ import Webview from '../mock/webview';
 import NodeElement from '../mock/element';
 import IPC from '../mock/ipc';
 
-describe('Dom Element', () => {
+describe('Webview', () => {
     describe('#constructor', () => {
         context('When arguments are missed or invalid', () => {
             it('should throw an error', () => {
@@ -35,11 +35,12 @@ describe('Dom Element', () => {
             element.on('test', spy1);
             element.on('test', spy2);
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
-
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
             expect(spy1.callCount).to.equal(1);
             expect(spy2.callCount).to.equal(1);
-            expect(spy1.args[0][0]).to.eql('foo');
+            expect(spy1.args[0][0]).to.exist;
+            expect(spy1.args[0][0].channel).to.eql('test');
+            expect(spy1.args[0][0].args[0]).to.eql('foo');
         });
 
         it('should handle payload-less events', () => {
@@ -55,7 +56,8 @@ describe('Dom Element', () => {
 
             expect(spy1.callCount).to.equal(1);
             expect(spy2.callCount).to.equal(1);
-            expect(spy1.args[0][0]).to.not.exist;
+            expect(spy1.args[0][0].channel).to.eql('test');
+            expect(spy1.args[0][0].args).to.not.exist;
         });
     });
 
@@ -69,9 +71,9 @@ describe('Dom Element', () => {
             element.once('test', spy1);
             element.once('test', spy2);
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
 
             expect(spy1.callCount).to.equal(1);
             expect(spy2.callCount).to.equal(1);
@@ -88,15 +90,15 @@ describe('Dom Element', () => {
             element.addListener('test', spy1);
             element.addListener('test', spy2);
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
 
             element.removeListener('test', spy1);
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
 
             element.off('test', spy2);
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
 
             expect(spy1.callCount).to.equal(1);
             expect(spy2.callCount).to.equal(2);
@@ -117,7 +119,7 @@ describe('Dom Element', () => {
 
             element.removeAllListeners();
 
-            ipc.input.emit('ipc-message', { channel: 'test' }, ['foo']);
+            ipc.input.emit('ipc-message', { channel: 'test', args: ['foo'] });
 
             expect(spy1.callCount).to.equal(0);
             expect(spy2.callCount).to.equal(0);

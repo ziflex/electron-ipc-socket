@@ -411,6 +411,26 @@ describe('Socket', () => {
                     expect(onEvent.callCount).to.equal(3);
                 });
             });
+
+            context('When webview as a transport', () => {
+                it('should be called on event', () => {
+                    const ipc = IPC();
+                    const webview = Webview(ipc);
+                    const onEvent = sinon.spy();
+
+                    const socket1 = new Socket('test_channel', webview);
+                    const socket2 = new Socket('test_channel', Transport(ipc.input, ipc.output));
+
+                    socket1.open();
+                    socket2.open();
+
+                    socket1.on('event:test', onEvent);
+
+                    socket2.send('test', 'foobar');
+
+                    expect(onEvent.called).to.be.true;
+                });
+            });
         });
 
         context('When wrong type', () => {

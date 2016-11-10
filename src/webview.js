@@ -89,8 +89,9 @@ const WebView = composeClass({
 
         this[FIELDS.element] = element;
         this[FIELDS.events] = {};
-        this[FIELDS.handle] = (evt, args) => {
+        this[FIELDS.handle] = (evt) => {
             const handlers = this[FIELDS.events][evt.channel];
+            const args = [evt].concat(evt.args);
             let toRemove = null;
 
             forEach(handlers, (item) => {
