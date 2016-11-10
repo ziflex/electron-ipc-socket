@@ -1,3 +1,10 @@
+## 1.2.0
+
+### Added
+
+* Bridge. Creates a bridge between two sockets.
+* ``open`` and ``close`` events to a Socket class.
+
 ## 1.1.3
 
 ### Fixed

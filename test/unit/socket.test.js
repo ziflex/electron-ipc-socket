@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions, import/no-extraneous-dependencies */
 import { expect } from 'chai';
 import sinon from 'sinon';
-import Socket from '../../src/socket';
+import { Socket } from '../../src/socket';
 import { Transport } from '../../src/transport';
 import IPC from '../mock/ipc';
 import Webview from '../mock/webview';
@@ -409,6 +409,9 @@ describe('Socket', () => {
                     s2.send('qaz');
 
                     expect(onEvent.callCount).to.equal(3);
+                    expect(onEvent.args[0][1]).to.eql('foo');
+                    expect(onEvent.args[1][1]).to.eql('bar');
+                    expect(onEvent.args[2][1]).to.eql('qaz');
                 });
             });
 
@@ -430,6 +433,25 @@ describe('Socket', () => {
 
                     expect(onEvent.called).to.be.true;
                 });
+            });
+        });
+
+        context('When internal event is fired', () => {
+            it('should handle internal events', () => {
+                const onOpen = sinon.spy();
+                const onClose = sinon.spy();
+
+                s1.on('open', onOpen);
+                s1.on('close', onClose);
+
+                s1.open();
+                s1.close();
+
+                s1.open();
+                s1.close();
+
+                expect(onOpen.calledTwice).to.be.true;
+                expect(onClose.calledTwice).to.be.true;
             });
         });
 
@@ -621,6 +643,28 @@ describe('Socket', () => {
                     expect(onEvent2.callCount).to.equal(0);
                     expect(onEvent3.callCount).to.equal(1);
                 });
+            });
+        });
+
+        context('When internal event is fired', () => {
+            it('should remove handlers for internal events', () => {
+                const onOpen = sinon.spy();
+                const onClose = sinon.spy();
+
+                s1.on('open', onOpen);
+                s1.on('close', onClose);
+
+                s1.open();
+                s1.close();
+
+                s1.off('open', onOpen);
+                s1.off('close', onClose);
+
+                s1.open();
+                s1.close();
+
+                expect(onOpen.callCount).to.equal(1);
+                expect(onClose.callCount).to.equal(1);
             });
         });
 

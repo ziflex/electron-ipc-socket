@@ -44,13 +44,21 @@ const METHODS = {
     handleRequest: Symbol('handleRequest')
 };
 
+function notify(instance, internalEvent, payload) {
+    const handlers = instance[FIELDS.handlers].internals[internalEvent];
+
+    if (handlers) {
+        forEach(handlers, handler => handler(instance, payload));
+    }
+}
+
 function finalize(instance) {
     if (instance.isOpen()) {
         instance.close();
     }
 }
 
-const Socket = composeClass({
+const SocketClass = composeClass({
     mixins: [
         DisposableMixin([
             FIELDS.transport,
@@ -74,7 +82,8 @@ const Socket = composeClass({
         this[FIELDS.pendingRequests] = {};
         this[FIELDS.handlers] = {
             events: {},
-            requests: {}
+            requests: {},
+            internals: {}
         };
         this[FIELDS.isOpen] = false;
         this[FIELDS.requestTimeout] = settings.timeout || 1000 * 60;
@@ -174,6 +183,8 @@ const Socket = composeClass({
         this[FIELDS.interval].start();
         this[FIELDS.isOpen] = true;
 
+        notify(this, 'open');
+
         return this;
     },
 
@@ -239,6 +250,21 @@ const Socket = composeClass({
 
                 break;
             }
+            case 'open':
+            case 'close': {
+                const handlers = this[FIELDS.handlers].internals;
+
+                let event = handlers[type];
+
+                if (!event) {
+                    event = [];
+                    handlers[type] = event;
+                }
+
+                event.push(handler);
+
+                break;
+            }
             default: {
                 throw new Error(`${ERR_EVENT_TYPE}: ${type}`);
             }
@@ -296,7 +322,23 @@ const Socket = composeClass({
 
                 const idx = handlers.indexOf(handler);
 
-                if (idx > 0) {
+                if (idx > -1) {
+                    handlers.splice(idx, 1);
+                }
+
+                break;
+            }
+            case 'open':
+            case 'close': {
+                const handlers = this[FIELDS.handlers].internals[type];
+
+                if (!handlers || handlers.length === 0) {
+                    break;
+                }
+
+                const idx = handlers.indexOf(handler);
+
+                if (idx > -1) {
                     handlers.splice(idx, 1);
                 }
 
@@ -327,10 +369,16 @@ const Socket = composeClass({
         this[FIELDS.interval].stop();
         this[FIELDS.isOpen] = false;
 
+        notify(this, 'close');
+
         return this;
     }
 });
 
-export default function create() {
-    return new Socket(...arguments);
+export function isSocket(target) {
+    return target instanceof SocketClass;
+}
+
+export function Socket() {
+    return new SocketClass(...arguments);
 }
