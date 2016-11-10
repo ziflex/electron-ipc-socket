@@ -1,3 +1,9 @@
+## 1.1.3
+
+### Fixed
+
+* Fixed not passed event name for event handlers.
+
 ## 1.1.2
 
 ### Fixed

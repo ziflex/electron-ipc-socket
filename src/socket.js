@@ -123,7 +123,7 @@ const Socket = composeClass({
             }
 
             if (handlers) {
-                forEach(handlers, handler => handler(payload));
+                forEach(handlers, handler => handler(payload, type));
             }
         };
 
