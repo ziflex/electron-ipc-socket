@@ -5,7 +5,9 @@ import disposableDecorator from 'disposable-decorator';
 import isNil from 'is-nil';
 import isFunction from 'is-function';
 import forEach from 'foreach';
+import isDOMElement from './is-element';
 import { requires, assert } from './assertions';
+import DOMElement from './dom-element';
 
 const ERR_INPUT_TYPE = 'Input must have "on", "once", "removeListener" and "removeAllListeners" methods';
 const ERR_OUTPUT_TYPE = 'Output must have "send" method';
@@ -103,7 +105,7 @@ const Class = composeClass({
     constructor(input, output) {
         requires('input', input);
 
-        this[FIELDS.input] = input;
+        this[FIELDS.input] = isDOMElement(input) ? DOMElement(input) : input;
         this[FIELDS.output] = output || input;
         this[FIELDS.handlers] = {};
 

@@ -4,6 +4,7 @@ import sinon from 'sinon';
 import Socket from '../../src/socket';
 import { Transport } from '../../src/transport';
 import IPC from '../mock/ipc';
+import Webview from '../mock/webview';
 
 describe('Socket', () => {
     let s1 = null;
@@ -38,6 +39,24 @@ describe('Socket', () => {
                 expect(() => {
                     return Socket('foo', {});
                 }).to.throw(Error);
+            });
+        });
+
+        context('When WebView is passed as transport', () => {
+            it('should wrap', () => {
+                const ipc = IPC();
+                const webview = Webview(ipc);
+                const on = sinon.spy(webview, 'addEventListener');
+                const send = sinon.spy(webview, 'send');
+
+                const socket = new Socket('test_channel', webview);
+
+                socket.open();
+
+                socket.send('foo');
+
+                expect(on.called).to.be.true;
+                expect(send.called).to.be.true;
             });
         });
     });
@@ -503,6 +522,37 @@ describe('Socket', () => {
                 expect(onEvent2.callCount).to.equal(0);
             });
 
+            context('When handler is not registered', () => {
+                it('should not mutate a collection of registered handlers', () => {
+                    const onEvent1 = sinon.spy();
+                    const onEvent2 = sinon.spy();
+
+                    s1.open();
+                    s2.open();
+
+                    s1.on('event:test', onEvent1);
+
+                    s1.off('event:test', onEvent2);
+
+                    s2.send('test', 'foo');
+
+                    expect(onEvent1.callCount).to.equal(1);
+                    expect(onEvent2.callCount).to.equal(0);
+                });
+            });
+
+            context('When no handlers', () => {
+                it('should exit without error', () => {
+                    const onEvent = sinon.spy();
+
+                    s1.open();
+
+                    expect(() => {
+                        s1.off('event:test', onEvent);
+                    }).to.not.throw(Error);
+                });
+            });
+
             context('When event name is not passed', () => {
                 it('should remove all event handlers', () => {
                     const onEvent1 = sinon.spy();
@@ -562,6 +612,37 @@ describe('Socket', () => {
                 expect(() => {
                     s1.off('test', sinon.spy());
                 }).to.throw(Error);
+            });
+        });
+    });
+
+    describe('.dispose', () => {
+        context('When open', () => {
+            it('should close socket', () => {
+                const ipc = IPC();
+                const socket = Socket('user-channel', Transport(ipc.input, ipc.output));
+
+                const onClose = sinon.spy(ipc.input, 'removeListener');
+
+                socket.open();
+                socket.dispose();
+
+                expect(onClose.called).to.be.true;
+            });
+        });
+
+        context('When closed', () => {
+            it('should do nothing', () => {
+                const ipc = IPC();
+                const socket = Socket('user-channel', Transport(ipc.input, ipc.output));
+
+                socket.open();
+                socket.close();
+
+                const onClose = sinon.spy(ipc.input, 'removeListener');
+                socket.dispose();
+
+                expect(onClose.called).to.be.false;
             });
         });
     });

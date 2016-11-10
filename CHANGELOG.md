@@ -1,5 +1,5 @@
-## 0.1.1
+## 1.1.0
 
-### Fixed
+### Added
 
-* ``package`` param is not passed
+* Support for WebView Element as an IPC object.
