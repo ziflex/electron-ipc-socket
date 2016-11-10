@@ -2,7 +2,7 @@ import Symbol from 'es6-symbol';
 import composeClass from 'compose-class';
 import DisposableMixin from 'disposable-mixin';
 import disposableDecorator from 'disposable-decorator';
-import { requires } from './assertions';
+import { requires } from './utils/assertions';
 
 const FIELDS = {
     evt: Symbol('evt'),

@@ -4,7 +4,7 @@ import isFunction from 'is-function';
 import composeClass from 'compose-class';
 import DisposableMixin from 'disposable-mixin';
 import disposableDecorator from 'disposable-decorator';
-import { requires, assert } from './assertions';
+import { requires, assert } from './utils/assertions';
 
 const ERR_HANDLER_TYPE = 'Handler must be a function';
 const ERR_PERIOD_TYPE = 'Period must be a number';

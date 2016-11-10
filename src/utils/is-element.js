@@ -1,4 +1,5 @@
 import isFunction from 'is-function';
+import isObject from 'is-object';
 
 function toString(value) {
     if (isFunction(value.toString)) {
@@ -10,6 +11,6 @@ function toString(value) {
 
 export default function isElement(value) {
     return (value && value.nodeType === 1) &&
-            (value && typeof value === 'object') &&
+            (isObject(value)) &&
             (toString(value).indexOf('Element') > -1);
 }

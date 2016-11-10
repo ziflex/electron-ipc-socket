@@ -5,7 +5,7 @@ import disposableDecorator from 'disposable-decorator';
 import uuid from 'uuid';
 import isFunction from 'is-function';
 import isError from 'is-error';
-import { requires, assert } from './assertions';
+import { requires, assert } from './utils/assertions';
 
 const ERR_CALLBACK_TYPE = 'Callback must be a function';
 const FIELDS = {
