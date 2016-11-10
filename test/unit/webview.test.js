@@ -41,6 +41,22 @@ describe('Dom Element', () => {
             expect(spy2.callCount).to.equal(1);
             expect(spy1.args[0][0]).to.eql('foo');
         });
+
+        it('should handle payload-less events', () => {
+            const ipc = IPC();
+            const element = DOMElement(Webview(ipc));
+            const spy1 = sinon.spy();
+            const spy2 = sinon.spy();
+
+            element.on('test', spy1);
+            element.on('test', spy2);
+
+            ipc.input.emit('ipc-message', { channel: 'test' });
+
+            expect(spy1.callCount).to.equal(1);
+            expect(spy2.callCount).to.equal(1);
+            expect(spy1.args[0][0]).to.not.exist;
+        });
     });
 
     describe('.once', () => {

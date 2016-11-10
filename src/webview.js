@@ -94,7 +94,7 @@ const WebView = composeClass({
             let toRemove = null;
 
             forEach(handlers, (item) => {
-                item.handler(...args);
+                item.handler.apply(null, args);
 
                 if (item.once) {
                     if (!toRemove) {

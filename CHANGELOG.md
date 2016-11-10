@@ -1,3 +1,9 @@
+## 1.1.2
+
+### Fixed
+
+* Fixed WebView events when no data was passing.
+
 ## 1.1.1
 
 ### Fixed
