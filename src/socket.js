@@ -118,33 +118,43 @@ const SocketClass = composeClass({
             transport.send(`${channel}:request`, req.id(), name, payload);
         };
 
-        this[METHODS.respond] = (evt, id, payload) => {
+        this[METHODS.respond] = (evt, id, err, payload) => {
             const receiver = evt.sender || transport;
+            const data = err ? null : payload;
+            const error = err ? err.toString() : null;
 
-            receiver.send(`${channel}:response`, id, payload);
+            receiver.send(`${channel}:response`, id, error, data);
         };
 
-        this[METHODS.handleEvent] = (evt, type, payload) => {
-            let handlers = this[FIELDS.handlers].events[type];
+        this[METHODS.handleEvent] = (evt, name, payload) => {
+            let handlers = this[FIELDS.handlers].events[name];
 
             if (!handlers) {
                 handlers = this[FIELDS.handlers].events['*'];
             }
 
             if (handlers) {
-                forEach(handlers, handler => handler(payload, type));
+                try {
+                    forEach(handlers, handler => handler(payload, name));
+                } catch (e) {
+                    notify(this, 'error', {
+                        error: e,
+                        type: 'event',
+                        name
+                    });
+                }
             }
         };
 
-        this[METHODS.handleResponse] = (evt, id, payload) => {
+        this[METHODS.handleResponse] = (evt, id, err, payload) => {
             const requests = this[FIELDS.pendingRequests];
             const request = requests[id];
 
             if (request) {
-                if (!isError(payload)) {
-                    request.resolve(payload);
+                if (err) {
+                    request.reject(isError(err) ? err : new Error(err.toString()));
                 } else {
-                    request.reject(payload);
+                    request.resolve(payload);
                 }
 
                 delete requests[id];
@@ -160,10 +170,26 @@ const SocketClass = composeClass({
             }
 
             if (isFunction(handler)) {
-                return handler(Message(evt, id, name, payload, this[METHODS.respond]));
+                const msg = Message(evt, id, name, payload, this[METHODS.respond]);
+
+                try {
+                    handler(msg);
+                } catch (e) {
+                    if (!msg.isDisposed()) {
+                        msg.reply(e);
+                    } else {
+                        notify(this, 'error', {
+                            error: e,
+                            type: 'message',
+                            name
+                        });
+                    }
+                }
+
+                return;
             }
 
-            return this[METHODS.respond](evt, id, new Error(`Message handler not found: ${name}`));
+            this[METHODS.respond](evt, id, new Error(`Message handler not found: ${name}`));
         };
     },
 
@@ -250,6 +276,7 @@ const SocketClass = composeClass({
 
                 break;
             }
+            case 'error':
             case 'open':
             case 'close': {
                 const handlers = this[FIELDS.handlers].internals;
@@ -328,6 +355,7 @@ const SocketClass = composeClass({
 
                 break;
             }
+            case 'error':
             case 'open':
             case 'close': {
                 const handlers = this[FIELDS.handlers].internals[type];

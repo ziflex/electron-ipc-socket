@@ -1,3 +1,9 @@
+## 1.2.1
+
+### Fixed
+
+* Improved error handling.
+
 ## 1.2.0
 
 ### Added

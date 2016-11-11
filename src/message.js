@@ -2,13 +2,14 @@ import Symbol from 'es6-symbol';
 import composeClass from 'compose-class';
 import DisposableMixin from 'disposable-mixin';
 import disposableDecorator from 'disposable-decorator';
+import isError from 'is-error';
 import { requires } from './utils/assertions';
 
 const FIELDS = {
     evt: Symbol('evt'),
     id: Symbol('id'),
     type: Symbol('type'),
-    payload: Symbol('payload'),
+    data: Symbol('data'),
     callback: Symbol('callback')
 };
 
@@ -18,7 +19,7 @@ const Message = composeClass({
             FIELDS.evt,
             FIELDS.id,
             FIELDS.type,
-            FIELDS.payload,
+            FIELDS.data,
             FIELDS.callback
         ])
     ],
@@ -27,7 +28,7 @@ const Message = composeClass({
         disposableDecorator
     ],
 
-    constructor(evt, id, type, payload, callback) {
+    constructor(evt, id, type, data, callback) {
         requires('evt', evt);
         requires('id', id);
         requires('type', type);
@@ -36,7 +37,7 @@ const Message = composeClass({
         this[FIELDS.evt] = evt;
         this[FIELDS.id] = id;
         this[FIELDS.type] = type;
-        this[FIELDS.payload] = payload;
+        this[FIELDS.data] = data;
         this[FIELDS.callback] = callback;
     },
 
@@ -45,14 +46,18 @@ const Message = composeClass({
     },
 
     data() {
-        return this[FIELDS.payload];
+        return this[FIELDS.data];
     },
 
     reply(payload) {
+        const err = isError(payload) ? payload : null;
+        const data = err ? null : payload;
+
         this[FIELDS.callback](
             this[FIELDS.evt],
             this[FIELDS.id],
-            payload
+            err,
+            data
         );
 
         this.dispose();

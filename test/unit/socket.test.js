@@ -357,6 +357,46 @@ describe('Socket', () => {
                     expect(onGlobalMessage.callCount).to.equal(2);
                 });
             });
+
+            context('When error occurs in event handler', () => {
+                it('should handle error and respond', () => {
+                    const onResponse = sinon.spy();
+                    const err = new Error('Error must be handled');
+
+                    s1.open();
+                    s2.open();
+
+                    s1.on('message:test', () => {
+                        throw err;
+                    });
+
+                    s2.send('test', onResponse);
+
+                    expect(onResponse.called).to.be.true;
+                    expect(onResponse.args[0][0]).to.exist;
+                    expect(onResponse.args[0][0]).to.eql(err);
+                    expect(onResponse.args[0][1]).to.not.exist;
+                });
+
+                it('should not handle error when message responded', () => {
+                    const onResponse = sinon.spy();
+                    const err = new Error('Error must be handled');
+
+                    s1.open();
+                    s2.open();
+
+                    s1.on('message:test', (msg) => {
+                        msg.reply('foo');
+                        throw err;
+                    });
+
+                    s2.send('test', onResponse);
+
+                    expect(onResponse.called).to.be.true;
+                    expect(onResponse.args[0][0]).to.not.exist;
+                    expect(onResponse.args[0][1]).to.eql('foo');
+                });
+            });
         });
 
         context('When event', () => {
@@ -687,6 +727,88 @@ describe('Socket', () => {
                 socket.dispose();
 
                 expect(onClose.called).to.be.false;
+            });
+        });
+    });
+
+    describe('events', () => {
+        describe('open', () => {
+            it('should notify when it gets open', () => {
+                const onOpen = sinon.spy();
+
+                s1.on('open', onOpen);
+
+                s1.open();
+
+                expect(onOpen.calledOnce).to.be.true;
+                expect(onOpen.args[0][0]).to.equal(s1);
+            });
+        });
+
+        describe('close', () => {
+            it('should notify when it gets closed', () => {
+                const onClose = sinon.spy();
+
+                s1.on('close', onClose);
+
+                s1.open();
+                s1.close();
+
+                expect(onClose.calledOnce).to.be.true;
+                expect(onClose.args[0][0]).to.equal(s1);
+            });
+        });
+
+        describe('error', () => {
+            context('When message', () => {
+                it('should notify when unhandled error occured in message handler', () => {
+                    const onError = sinon.spy();
+                    const onResponse = sinon.spy();
+                    const err = new Error('Foo bar');
+
+                    s1.open();
+                    s2.open();
+
+                    s1.on('error', onError);
+
+                    s1.on('message', (msg) => {
+                        msg.reply('foo');
+                        throw err;
+                    });
+
+                    s2.send('test', onResponse);
+
+                    expect(onResponse.called).to.be.true;
+                    expect(onError.calledOnce).to.be.true;
+                    expect(onError.args[0][0]).to.equal(s1);
+                    expect(onError.args[0][1].error).to.eql(err);
+                    expect(onError.args[0][1].type).to.eql('message');
+                    expect(onError.args[0][1].name).to.eql('test');
+                });
+            });
+
+            context('When event', () => {
+                it('should notify when unhandled error occured in event handler', () => {
+                    const onError = sinon.spy();
+                    const err = new Error('Foo bar');
+
+                    s1.open();
+                    s2.open();
+
+                    s1.on('error', onError);
+
+                    s1.on('event', () => {
+                        throw err;
+                    });
+
+                    s2.send('test');
+
+                    expect(onError.calledOnce).to.be.true;
+                    expect(onError.args[0][0]).to.equal(s1);
+                    expect(onError.args[0][1].error).to.eql(err);
+                    expect(onError.args[0][1].type).to.eql('event');
+                    expect(onError.args[0][1].name).to.eql('test');
+                });
             });
         });
     });
