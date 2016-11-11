@@ -214,6 +214,24 @@ In order to remove all event handler it needs to pass only ``event`` as an event
 #### .close()
 Closes a socket.
 
+#### Events
+A socket class has a set of internal events.
+
+All handlers receives socket instance as a first argument.
+
+##### open
+Fired when socket is opened
+
+##### close
+Fired when socket is closed
+
+##### error
+Fired when unhandled error occured. Sends an object that has properties:   
+- ``error`` error object
+- ``type`` handler type. ``message`` or ``event``
+- ``name`` event/message name.
+
+
 ### Bridge
 Represents a communication bridge between 2 sockets.
 
