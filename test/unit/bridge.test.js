@@ -71,16 +71,26 @@ describe('Bridge', () => {
             bridge.open();
 
             const onMessage = sinon.spy();
+            const onMessageResponse = sinon.spy();
             const onEvent = sinon.spy();
 
-            s1.on('message:foo', onMessage);
-            s1.on('event:foo', onEvent);
+            s1.on('message:test', (msg) => {
+                onMessage();
+                msg.reply('bar');
+            });
+            s1.on('event:test', onEvent);
 
-            s2.send('foo', 'bar', sinon.spy());
-            s2.send('foo', 'bar');
+            s2.send('test', 'bar', onMessageResponse);
+            s2.send('test', 'bar');
 
             expect(onMessage.called, 'onMessage must be called').to.be.true;
+            expect(onMessageResponse.called, 'onMessageResponse must be called').to.be.true;
+            expect(onMessageResponse.args[0][0], 'error').to.not.exist;
+            expect(onMessageResponse.args[0][1], 'payload').to.exist;
+
             expect(onEvent.called, 'onEvent must be called').to.be.true;
+            expect(onEvent.args[0][0]).to.equal('bar');
+            expect(onEvent.args[0][1]).to.equal('test');
         });
     });
 

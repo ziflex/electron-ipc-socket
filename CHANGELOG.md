@@ -1,3 +1,9 @@
+## 1.2.3
+
+### Fixed
+
+* Message handling in Bridge class.
+
 ## 1.2.2
 
 ### Fixed

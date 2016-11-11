@@ -50,8 +50,12 @@ const Bridge = composeClass({
 
         this[METHODS.onMessage] = (target) => {
             return (msg) => {
-                target.send(msg.type(), msg.data(), (response) => {
-                    msg.reply(response);
+                target.send(msg.type(), msg.data(), (err, payload) => {
+                    if (err) {
+                        return msg.reply(err);
+                    }
+
+                    return msg.reply(payload);
                 });
             };
         };
