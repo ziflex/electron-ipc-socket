@@ -142,24 +142,5 @@ describe('Bridge', () => {
             expect(s1.isDisposed()).to.be.false;
             expect(s2.isDisposed()).to.be.false;
         });
-
-        it('should should remove all handlers from underlying sockets', () => {
-            bridge.dispose();
-
-            const onMessage = sinon.spy();
-            const onEvent = sinon.spy();
-
-            s1.open();
-            s2.open();
-
-            s1.on('message:foo', onMessage);
-            s1.on('event:foo', onEvent);
-
-            s2.send('foo', 'bar', sinon.spy());
-            s2.send('foo', 'bar');
-
-            expect(onMessage.called).to.be.false;
-            expect(onEvent.called).to.be.false;
-        });
     });
 });

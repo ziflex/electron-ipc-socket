@@ -17,6 +17,137 @@ Response-request abstraction on top of Electron IPC system.
 Events are good, but sometimes you want something more than just 'emit and forget'.
 Current package provides an abstraction on top of Electron IPC system that allows you to make 'request-response' communication.
 
+## Usage
+
+### Basic
+
+````javascript
+// main-process.js
+
+import { ipcMain, BrowserWindow } from 'electron';
+import { Socket, Transport } from 'electron-ipc-socket';
+import fs from 'fs';
+
+const win = new BrowserWindow();
+
+const socket = Socket('main-win', Transport(ipcMain, win));
+
+socket.open();
+
+socket.on('event:ready', () => {
+    console.log('message from rendering process');
+});
+
+socket.on('message:read-file', (msg) => {
+    fs.readFile(msg.data(), 'utf8', (err, content) => {
+        if (err) {
+            return msg.reply(err);
+        }
+
+        return msg.reply(content);
+    })
+});
+
+````
+
+````javascript
+// renderer-process.js
+
+import { ipcRenderer } from 'electron';
+import { Socket } from 'electron-ipc-socket';
+
+const socket = Socket('main-win', ipcRenderer);
+
+socket.open();
+
+socket.send('ready');
+
+socket.send('read-file', './package.json', (err, content) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+
+    console.log(content);
+});
+
+````
+
+### Bridging
+
+````javascript
+// main-process.js
+
+import { ipcMain, BrowserWindow } from 'electron';
+import { Socket, Transport } from 'electron-ipc-socket';
+import fs from 'fs';
+
+const win = new BrowserWindow();
+
+const socket = Socket('main-win', Transport(ipcMain, win));
+
+socket.open();
+
+socket.on('event:ready', () => {
+    console.log('message from rendering process');
+});
+
+socket.on('message:read-file', (msg) => {
+    fs.readFile(msg.data(), 'utf8', (err, content) => {
+        if (err) {
+            return msg.reply(err);
+        }
+
+        return msg.reply(content);
+    })
+});
+
+````
+
+````javascript
+// renderer-process.js
+
+import { ipcRenderer } from 'electron';
+import { Socket, Bridge } from 'electron-ipc-socket';
+
+const webview = document.getElementById('guest');
+
+const host = Socket('main-win', ipcRenderer);
+const guest = Socket('main-win', webview);
+
+const bridge = Bridge(host, guest);
+
+bridge.open();
+
+````
+
+````javascript
+// webview.js
+
+import { ipcRenderer } from 'electron';
+import { Socket, Transport } from 'electron-ipc-socket';
+
+const socket = Socket('main-win', Transport(ipcRenderer, {
+    send(...args) {
+        ipcRenderer.sendToHost(...args);
+    }
+}));
+
+socket.open();
+
+socket.send('ready');
+
+socket.send('read-file', './package.json', (err, content) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+
+    console.log(content);
+});
+
+````
+
 ## API
 
 ### Socket
@@ -82,6 +213,20 @@ In order to remove all event handler it needs to pass only ``event`` as an event
 
 #### .close()
 Closes a socket.
+
+### Bridge
+Represents a communication bridge between 2 sockets.
+
+#### Constructor(first: Socket, second: Socket)
+
+#### .open()
+Opens a bridge and starts delegating messages and events back and forth.
+
+#### .close()
+Closes a bridge and stops delegating messages and events back and forth.
+
+#### .dispose()
+Disposes a bridge and releases sockets.
 
 ### Transport
 Represents an wrapper for one or two Electron IPC objects.

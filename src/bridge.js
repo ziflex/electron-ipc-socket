@@ -23,16 +23,11 @@ const METHODS = {
 };
 
 function finalize(instance) {
-    if (instance[FIELDS.first].isOpen()) {
-        instance[FIELDS.first].close();
+    if (instance.isOpen()) {
+        instance.close();
     }
 
     instance[FIELDS.first] = null;
-
-    if (instance[FIELDS.second].isOpen()) {
-        instance[FIELDS.inpsecondut].close();
-    }
-
     instance[FIELDS.second] = null;
 }
 

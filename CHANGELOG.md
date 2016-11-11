@@ -5,8 +5,6 @@
 * Bridge. Creates a bridge between two sockets.
 * ``open`` and ``close`` events to a Socket class.
 
-## 1.1.3
-
 ### Fixed
 
 * Fixed not passed event name for event handlers.
