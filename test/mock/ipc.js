@@ -1,5 +1,7 @@
 import composeClass from 'compose-class';
 import { EventEmitter } from 'events';
+import isError from 'is-error';
+import forEach from '../../src/utils/for-each';
 
 const NativeEvent = composeClass({});
 
@@ -41,6 +43,14 @@ const IPC = composeClass({
     },
 
     send(channel, ...args) {
+        const data = [];
+
+        forEach(args, (arg) => {
+            if (isError) {
+                
+            }
+        })
+
         this.output.emit(channel, ...args);
 
         return this;

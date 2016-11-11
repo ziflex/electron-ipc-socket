@@ -121,7 +121,11 @@ const SocketClass = composeClass({
         this[METHODS.respond] = (evt, id, err, payload) => {
             const receiver = evt.sender || transport;
             const data = err ? null : payload;
-            const error = err ? err.toString() : null;
+            let error = err;
+
+            if (isError(err)) {
+                error = err.message;
+            }
 
             receiver.send(`${channel}:response`, id, error, data);
         };

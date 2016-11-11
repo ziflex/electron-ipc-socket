@@ -1,3 +1,9 @@
+## 1.2.2
+
+### Fixed
+
+* Removed double 'Error:' word in error message.
+
 ## 1.2.1
 
 ### Fixed
