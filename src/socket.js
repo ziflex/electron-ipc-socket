@@ -109,17 +109,16 @@ const SocketClass = composeClass({
         }, this[FIELDS.cleanupInterval]);
 
         this[METHODS.emit] = (event, payload) => {
-            transport.send(`${channel}:event`, event, payload);
+            this[FIELDS.transport].send(`${this[FIELDS.channel]}:event`, event, payload);
         };
 
         this[METHODS.request] = (req, name, payload) => {
             this[FIELDS.pendingRequests][req.id()] = req;
 
-            transport.send(`${channel}:request`, req.id(), name, payload);
+            this[FIELDS.transport].send(`${this[FIELDS.channel]}:request`, req.id(), name, payload);
         };
 
         this[METHODS.respond] = (evt, id, err, payload) => {
-            const receiver = evt.sender || transport;
             const data = err ? null : payload;
             let error = err;
 
@@ -127,7 +126,7 @@ const SocketClass = composeClass({
                 error = err.message;
             }
 
-            receiver.send(`${channel}:response`, id, error, data);
+            this[FIELDS.transport].send(`${this[FIELDS.channel]}:response`, id, error, data);
         };
 
         this[METHODS.handleEvent] = (evt, name, payload) => {

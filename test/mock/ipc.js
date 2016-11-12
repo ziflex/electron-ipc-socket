@@ -3,7 +3,11 @@ import { EventEmitter } from 'events';
 import isError from 'is-error';
 import forEach from '../../src/utils/for-each';
 
-const NativeEvent = composeClass({});
+class NativeEvent {
+    get sender() {
+        throw new Error('Sender must not be used');
+    }
+}
 
 function send(channel, ...args) {
     return this.emit(channel, new NativeEvent(), ...args);
@@ -47,7 +51,7 @@ const IPC = composeClass({
 
         forEach(args, (arg) => {
             if (isError) {
-                
+
             }
         })
 

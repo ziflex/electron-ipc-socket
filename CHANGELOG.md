@@ -1,3 +1,9 @@
+## 1.2.4
+
+### Fixed
+
+* Request handling in Socket class.
+
 ## 1.2.3
 
 ### Fixed
