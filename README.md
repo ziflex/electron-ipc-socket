@@ -19,7 +19,7 @@ Current package provides an abstraction on top of Electron IPC system that allow
 
 ## Usage
 
-### Basic
+### Events
 
 ```typescript
 // main-process.js
@@ -35,19 +35,7 @@ const socket = new Socket('main-win', new Transport(ipcMain, win));
 socket.open();
 
 socket.onEvent('ready', (evt: Event) => {
-    console.log(evt.name);
-});
-
-socket.onRequest('read-file', async (req: InboundRequest) => {
-    return new Promise((resolve, reject) => {
-        fs.readFile(msg.data(), 'utf8', (err, content) => {
-            if (err) {
-                return reject(err);
-            }
-
-            return resolve(content);
-        });
-    });
+    console.log('Renderer process is ready');
 });
 ```
 
@@ -62,148 +50,78 @@ const socket = new Socket('main-win', ipcRenderer);
 socket.open();
 
 socket.send('ready');
+```
+
+### Request-response
+
+```typescript
+// main-process.js
+
+import { ipcMain, BrowserWindow } from 'electron';
+import { Socket, Transport, Event, InboundRequest } from 'electron-ipc-socket';
+import fs from 'fs';
+
+const win = new BrowserWindow();
+
+const socket = new Socket('main-win', new Transport(ipcMain, win));
+
+socket.open();
+
+socket.onRequest('ping', async (req: InboundRequest) => {
+    return 'pong';
+});
+```
+
+```typescript
+// renderer-process.js
+
+import { ipcRenderer } from 'electron';
+import { Socket } from 'electron-ipc-socket';
+
+const socket = new Socket('main-win', ipcRenderer);
+
+socket.open();
 
 socket
-    .request('read-file', './package.json')
+    .request('ping')
     .then(content => console.log(content))
     .catch(err => console.error(err));
 ```
 
-## API
+##### Async response
 
-### Socket
+```typescript
+// main-process.js
 
-Provides 'request-response' abstraction on top of Electron IPC system.
+import { ipcMain, BrowserWindow } from 'electron';
+import { Socket, Transport, Event, InboundRequest } from 'electron-ipc-socket';
+import fs from 'fs';
+import util from 'util';
 
-#### Constructor(channel: string, transport: (Transport|IPC), settings: Settings)
+const read = util.promisify(fs.read);
+const win = new BrowserWindow();
 
--   `channel` channel name for isolated communication.
--   `transport` low-lever communication transport. Either electron IPC or instance of Transport.
--   `settings` set of internal settings.
+const socket = new Socket('main-win', new Transport(ipcMain, win));
 
-#### .isOpen()
+socket.open();
 
-Returns a value which indicates whether the socket is open.
+socket.onRequest('file', async (req: InboundRequest) => {
+    return read(req.data);
+});
+```
 
-#### .open()
+```typescript
+// renderer-process.js
 
-Opens a socket.
+import { ipcRenderer } from 'electron';
+import { Socket } from 'electron-ipc-socket';
 
-#### .send(name: string [, payload: any][, handler: function])
+const socket = new Socket('main-win', ipcRenderer);
 
-Sends a message or emits an event.
+socket.open();
 
-In order to send a message it needs to:
-
--   pass a message name
--   pass a response handler with a signature `Function(response: any)`
--   optionally it's possible to send a payload after message name
-
-In order to emit an event it needs to:
-
--   pass an event name
--   omit a response handler
--   optionally it's possible to send a payload after event name
-
-#### .on(name: string, handler: Function)
-
-Adds a message or an event handler.
-
-In order to add a message handler:
-
--   pass a message name with prefix `message:`
--   pass a message handler with a signature `Function(message: Message)`
-
-`message` object has 3 methods:
-
--   `.type()` returns a message type (name)
--   `.data()` returns a message payload
--   `.reply([payload: any])` responds to a request
-
-_There can be only one message handler for each message name._
-
-In order to add an event handler it needs to:
-
--   pass event name with prefix `event:`
--   pass a message handler with a signature `Function(payload: any)`
-
-It is possible to add a generic handler for all messages and events by passing just either `message` or `event`.
-
-#### .off(name: string [, handler: Function]])
-
-Removes a message or an event handler.
-
-In order to remove a message handler it needs to:
-
--   pass a message name with prefix `message:`
--   pass a message handler
-
-In order to remove an event handler it needs to:
-
--   pass event name with prefix `event:`
--   pass a message handler
-
-In order to remove all event handlers for specific event it needs to omit handler.
-In order to remove all event handler it needs to pass only `event` as an event name.
-
-#### .close()
-
-Closes a socket.
-
-#### Events
-
-A socket class has a set of internal events.
-
-All handlers receives socket instance as a first argument.
-
-##### open
-
-Fired when socket is opened
-
-##### close
-
-Fired when socket is closed
-
-##### error
-
-Fired when unhandled error occured. Sends an object that has properties:
-
--   `error` error object
--   `type` handler type. `message` or `event`
--   `name` event/message name.
-
-### Bridge
-
-Represents a communication bridge between 2 sockets.
-
-#### Constructor(first: Socket, second: Socket)
-
-#### .open()
-
-Opens a bridge and starts delegating messages and events back and forth.
-
-#### .close()
-
-Closes a bridge and stops delegating messages and events back and forth.
-
-#### .dispose()
-
-Disposes a bridge and releases sockets.
-
-### Transport
-
-Represents an wrapper for one or two Electron IPC objects.
-Exposes same public API.
-
-#### Constructor(input: IPC [, output: IPC])
-
--   `input` input IPC for listening to events.
--   `output` output IPC for sending messages and emitting envents. Optional. Input IPC is used by default.
-
-### Settings
-
-Socket settings.  
-Plain typescript ojbect.
-
--   `timeout` request timeout.
--   `cleanup` clean up interval.
+socket
+    .request('file', 'package.json')
+    .then(content => console.log(content))
+    .catch(err => console.error(err));
+```

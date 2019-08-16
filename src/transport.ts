@@ -20,6 +20,10 @@ export type TransportInputListener = (...args: any[]) => void;
 export interface TransportOutput {
     send(channel: string | symbol, ...args: any[]): void;
 }
+
+/*
+ * Represents a socket connection transport
+ */
 export class Transport extends Disposable {
     private __input: TransportInput;
     private __output: TransportOutput;
@@ -65,6 +69,10 @@ export class Transport extends Disposable {
         this.__listeners = Object.create(null);
     }
 
+    /*
+     * Destroys the instance.
+     * After invoking the method, the instance cannot be used anymore.
+     */
     public dispose(): void {
         super.dispose();
 
@@ -75,6 +83,9 @@ export class Transport extends Disposable {
         delete this.__listeners;
     }
 
+    /*
+     * Sends a data via an underlying output.
+     */
     public send(channel: string, ...args: any[]): void {
         Disposable.assert(this);
         requires('channel', channel);
@@ -82,6 +93,9 @@ export class Transport extends Disposable {
         this.__output.send(channel, ...args);
     }
 
+    /*
+     * Registers an event listener.
+     */
     public on(channel: string, subscriber: Subscriber): Subscription {
         Disposable.assert(this);
         requires('channel', channel);

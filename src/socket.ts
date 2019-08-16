@@ -32,6 +32,9 @@ export interface Settings {
     cleanup?: number;
 }
 
+/*
+ * Represents a communication socket between two processes.
+ */
 export class Socket extends Disposable {
     private __isOpen: boolean;
     private __channel: string;
@@ -73,10 +76,17 @@ export class Socket extends Disposable {
         this.__bus = new NanoEvents();
     }
 
+    /*
+     * Indicates whether the socket is open.
+     */
     public get isOpen(): boolean {
         return this.__isOpen;
     }
 
+    /*
+     * Destroys the instance.
+     * After invoking the method, the instance cannot be used anymore.
+     */
     public dispose(): void {
         super.dispose();
 
@@ -95,6 +105,9 @@ export class Socket extends Disposable {
         delete this.__bus;
     }
 
+    /*
+     * Opens connection and starts receiving events and requests.
+     */
     public open(): void {
         Disposable.assert(this);
         assert(SocketOpenError, !this.isOpen);
@@ -121,6 +134,10 @@ export class Socket extends Disposable {
         this.__bus.emit('open', new Event('open'));
     }
 
+    /*
+     * Closes the connections and stops receiving events and requests.
+     * All pending outgoing requests get cancelled.
+     */
     public close(): void {
         Disposable.assert(this);
         assert(SocketClosedError, this.isOpen);
@@ -144,6 +161,9 @@ export class Socket extends Disposable {
         this.__bus.emit('close', new Event('close'));
     }
 
+    /*
+     * Sends an event.
+     */
     public send(event: string, payload?: any): void {
         Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
@@ -152,6 +172,9 @@ export class Socket extends Disposable {
         this.__transport.send(`${this.__channel}:${EVENTS}`, event, payload);
     }
 
+    /*
+     * Sends a request.
+     */
     public async request<T = any>(path: string, payload?: any): Promise<T> {
         Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
@@ -184,6 +207,9 @@ export class Socket extends Disposable {
         });
     }
 
+    /*
+     * Registers an event listener.
+     */
     public onEvent(
         name: string,
         handler: EventHandler,
@@ -192,6 +218,9 @@ export class Socket extends Disposable {
         return this.__subscribe(`${BUS_EVENTS}/${name}`, handler, once);
     }
 
+    /*
+     * Registers a request handler.
+     */
     public onRequest(
         path: string,
         handler: RequestHandler | AsyncRequestHandler,
@@ -204,6 +233,9 @@ export class Socket extends Disposable {
         );
     }
 
+    /*
+     * Registers an error event listener.
+     */
     public onError(
         handler: EventHandler<Error>,
         once: boolean = false,
@@ -278,6 +310,11 @@ export class Socket extends Disposable {
             }
 
             delete requests[id];
+        } else {
+            this.__bus.emit(
+                'error',
+                new Event('error', new Error('Redundant request handler')),
+            );
         }
     }
 
