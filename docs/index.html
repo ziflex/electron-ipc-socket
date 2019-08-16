@@ -126,7 +126,7 @@ socket.send(<span class="hljs-string">'ready'</span>);</code></pre>
 
 socket.open();
 
-socket.onRequest(<span class="hljs-string">'ping'</span>, <span class="hljs-keyword">async</span> (req: InboundRequest) =&gt; {
+socket.onRequest(<span class="hljs-string">'ping'</span>, <span class="hljs-function">(<span class="hljs-params">req: InboundRequest</span>) =&gt;</span> {
     <span class="hljs-keyword">return</span> <span class="hljs-string">'pong'</span>;
 });</code></pre>
 				<pre><code class="language-typescript"><span class="hljs-comment">// renderer-process.js</span>
@@ -142,8 +142,8 @@ socket
     .request(<span class="hljs-string">'ping'</span>)
     .then(<span class="hljs-function"><span class="hljs-params">content</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(content))
     .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> <span class="hljs-built_in">console</span>.error(err));</code></pre>
-				<a href="#async-response" id="async-response" style="color: inherit; text-decoration: none;">
-					<h5>Async response</h5>
+				<a href="#async-request-handler" id="async-request-handler" style="color: inherit; text-decoration: none;">
+					<h5>Async request handler</h5>
 				</a>
 				<pre><code class="language-typescript"><span class="hljs-comment">// main-process.js</span>
 
