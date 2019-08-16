@@ -6,8 +6,6 @@ export class SocketClosedError extends Error {
 
 export class SocketOpenError extends Error {
     constructor() {
-
         super('Socket is already open');
-
     }
 }
