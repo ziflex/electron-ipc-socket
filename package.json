@@ -9,7 +9,7 @@
         "build": "cross-env NODE_ENV=production npm run clean && tsc -b tsconfig.json",
         "test": "cross-env NODE_ENV=test mocha",
         "doc": "rimraf docs && typedoc --excludeProtected --excludePrivate --out docs && touch docs/.nojekyll",
-        "fmt": "pretty-quick"
+        "fmt": "pretty-quick --pattern src/**/*.ts"
     },
     "repository": {
         "type": "git",
