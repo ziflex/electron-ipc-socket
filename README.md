@@ -67,7 +67,7 @@ const socket = new Socket('main-win', new Transport(ipcMain, win));
 
 socket.open();
 
-socket.onRequest('ping', async (req: InboundRequest) => {
+socket.onRequest('ping', (req: InboundRequest) => {
     return 'pong';
 });
 ```
@@ -88,7 +88,7 @@ socket
     .catch(err => console.error(err));
 ```
 
-##### Async response
+##### Async request handler
 
 ```typescript
 // main-process.js
