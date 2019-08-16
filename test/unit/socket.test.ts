@@ -1,13 +1,10 @@
 /* eslint-disable no-unused-expressions, import/no-extraneous-dependencies */
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { UnhandledExceptionError } from '../../src/errors/exception';
-import { TimeoutError } from '../../src/errors/timeout';
 import { InboundRequest } from '../../src/inbound-request';
 import { Socket } from '../../src/socket';
 import { Transport } from '../../src/transport';
 import { IPC } from '../mock/ipc';
-import { create as createWebview } from '../mock/webview';
 
 async function sleep(time: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, time));
@@ -140,7 +137,8 @@ describe('Socket', () => {
 
             s2.onRequest('test', (req: InboundRequest) => {
                 onRequest(req.data);
-                req.reply({ foo: 'bar' });
+
+                return { foo: 'bar' };
             });
 
             const resp = await s1.request('test', 'foo');
@@ -176,7 +174,6 @@ describe('Socket', () => {
 
             s1.onRequest('test', (req: InboundRequest) => {
                 onRequest(req.path, req.data);
-                req.reply();
             });
             s2.onEvent('test', onEvent);
 
@@ -194,7 +191,7 @@ describe('Socket', () => {
             s2.open();
 
             s1.onRequest('test', (req: InboundRequest) => {
-                req.reply(new Error('test'));
+                return new Error('test');
             });
 
             try {
@@ -221,26 +218,6 @@ describe('Socket', () => {
                     expect(e).to.be.instanceOf(Error);
                 }
             });
-
-            it('should not handle error when message responded', async () => {
-                const onError = sinon.spy();
-
-                s1.open();
-                s2.open();
-
-                s1.onRequest('test', msg => {
-                    msg.reply('foo');
-                    throw new Error('Test');
-                });
-
-                try {
-                    await s2.request('test');
-                } catch (e) {
-                    onError(e);
-                }
-
-                expect(onError.called).to.be.false;
-            });
         });
 
         context('.onEvent', () => {
@@ -254,7 +231,7 @@ describe('Socket', () => {
                 s1.onEvent('test', onEvent);
                 s1.onRequest('test', onRequest);
 
-                s2.emit('test', 'foo');
+                s2.send('test', 'foo');
 
                 await sleep(50);
 
@@ -264,21 +241,25 @@ describe('Socket', () => {
         });
 
         context('When internal event is fired', () => {
-            it('should handle internal events', () => {
-                const onOpen = sinon.spy();
-                const onClose = sinon.spy();
+            it('should handle errors', async () => {
+                const onError = sinon.spy();
 
-                s1.on('open', onOpen);
-                s1.on('close', onClose);
+                s1.onError(onError);
 
                 s1.open();
-                s1.close();
+                s2.open();
 
-                s1.open();
-                s1.close();
+                s1.onRequest('test', () => {
+                    throw new Error('test');
+                });
 
-                expect(onOpen.calledTwice).to.be.true;
-                expect(onClose.calledTwice).to.be.true;
+                try {
+                    await s2.request('test');
+                } catch (e) {}
+
+                await sleep(10);
+
+                expect(onError.called).to.be.true;
             });
         });
     });

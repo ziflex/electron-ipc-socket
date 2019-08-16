@@ -60,62 +60,6 @@ describe('Transport', () => {
         });
     });
 
-    describe('.once', () => {
-        it('should subscribe event handler', () => {
-            const handler = sinon.spy();
-            const ipc = new IPC();
-            const transport = new Transport(ipc);
-
-            transport.on('event', handler, true);
-            ipc.input.send('event', 'foo', 'bar');
-            ipc.input.send('event', 'foo', 'bar');
-            ipc.input.send('event2', 'foo', 'bar');
-
-            expect(handler.callCount).to.equal(1);
-            expect(handler.args[0][0]).to.eql(['foo', 'bar']);
-        });
-
-        context('When event not passed', () => {
-            it('should throw an error', () => {
-                const ipc = new IPC();
-                const transport = new Transport(ipc);
-
-                expect(() => {
-                    (transport as any).on(null, sinon.spy(), true);
-                }).to.throw(Error);
-            });
-        });
-
-        context('When handler not passed', () => {
-            it('should throw an error', () => {
-                const ipc = new IPC();
-                const transport = new Transport(ipc);
-
-                expect(() => {
-                    (transport as any).on('event', null, true);
-                }).to.throw(Error);
-            });
-        });
-
-        context('When disposed', () => {
-            it('should unsubscribe from input only registered handlers', () => {
-                const handler = sinon.spy();
-                const externalHandler = sinon.spy();
-                const ipc = new IPC();
-                const transport = new Transport(ipc);
-
-                ipc.input.once('event', externalHandler);
-                transport.on('event', handler, true);
-                transport.dispose();
-                ipc.input.send('event', 'foo', 'bar');
-                ipc.input.send('event', 'foo', 'bar');
-
-                expect(handler.callCount).to.equal(0);
-                expect(externalHandler.callCount).to.equal(1);
-            });
-        });
-    });
-
     describe('.off', () => {
         it('should unsubscribe event handler', () => {
             const handler = sinon.spy();

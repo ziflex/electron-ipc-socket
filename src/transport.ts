@@ -1,6 +1,6 @@
 import nanoid from 'nanoid';
 import { Disposable } from './core/disposable';
-import { Observable, Subscriber, Subscription } from './core/observable';
+import { Subscriber, Subscription } from './core/observable';
 import { RequiredError } from './errors/required';
 import { InvalidInputError, InvalidOutputError } from './errors/transport';
 import { requires } from './utils/assertions';
@@ -20,8 +20,7 @@ export type TransportInputListener = (...args: any[]) => void;
 export interface TransportOutput {
     send(channel: string | symbol, ...args: any[]): void;
 }
-
-export class Transport extends Observable {
+export class Transport extends Disposable {
     private __input: TransportInput;
     private __output: TransportOutput;
     private __listeners: {
@@ -83,21 +82,16 @@ export class Transport extends Observable {
         this.__output.send(channel, ...args);
     }
 
-    public on(
-        channel: string | symbol,
-        subscriber: Subscriber,
-        once: boolean = false,
-    ): Subscription {
+    public on(channel: string, subscriber: Subscriber): Subscription {
         Disposable.assert(this);
         requires('channel', channel);
         requires('subscriber', subscriber);
 
-        const fn = !once ? this.__input.on : this.__input.once;
         const listener = (_: any, ...args: any[]) => {
             subscriber(args);
         };
 
-        fn.call(this.__input, channel, listener);
+        this.__input.on(channel, listener);
 
         const id = nanoid();
 

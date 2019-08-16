@@ -1,9 +1,13 @@
 import isError from 'is-error';
+import isPromise = require('is-promise');
+import NanoEvents from 'nanoevents';
+import unbindAll from 'nanoevents/unbind-all';
 import { Interval } from 'pinterval';
 import { Disposable } from './core/disposable';
-import { Observable, Subscription } from './core/observable';
+import { Subscription } from './core/observable';
 import { ConnectionLostError } from './errors/connection';
 import { UnhandledExceptionError } from './errors/exception';
+import { NotFoundError } from './errors/not-found';
 import { RequiredError } from './errors/required';
 import { SocketClosedError, SocketOpenError } from './errors/socket';
 import { TimeoutError } from './errors/timeout';
@@ -12,27 +16,29 @@ import { InboundRequest } from './inbound-request';
 import { OutboundRequest } from './outbound-request';
 import { Transport, TransportInput, TransportOutput } from './transport';
 import { assert, requires } from './utils/assertions';
-import { NotFoundError } from './errors/not-found';
 
 const REQUESTS = 'requests';
 const RESPONSES = 'responses';
 const EVENTS = 'events';
+const BUS_EVENTS = Math.random().toString();
+const BUS_REQUESTS = Math.random().toString();
 
-export type RequestHandler = (req: InboundRequest) => void;
-export type EventHandler = (evt: Event) => void;
+export type RequestHandler<T = any> = (req: InboundRequest) => T;
+export type AsyncRequestHandler<T = any> = (req: InboundRequest) => Promise<T>;
+export type EventHandler<T = any> = (evt: Event<T>) => void;
 
 export interface Settings {
     timeout?: number;
     cleanup?: number;
 }
 
-export class Socket extends Observable {
+export class Socket extends Disposable {
     private __isOpen: boolean;
     private __channel: string;
     private __transport: Transport;
+    private __bus: NanoEvents<any>;
     private __interval: Interval;
     private __requestTimeout: number;
-    private __cleanupInterval: number;
     private __pendingRequests?: { [id: string]: OutboundRequest };
     private __subscriptions?: Subscription[];
 
@@ -60,11 +66,11 @@ export class Socket extends Observable {
         this.__isOpen = false;
         this.__channel = channel;
         this.__requestTimeout = settings.timeout || 1000 * 60;
-        this.__cleanupInterval = settings.cleanup || 1000 * 60;
         this.__interval = new Interval({
             func: this.__cleanup.bind(this),
-            time: this.__cleanupInterval,
+            time: settings.cleanup || 1000 * 60,
         });
+        this.__bus = new NanoEvents();
     }
 
     public get isOpen(): boolean {
@@ -74,11 +80,19 @@ export class Socket extends Observable {
     public dispose(): void {
         super.dispose();
 
+        this.__bus.emit('dispose', new Event('dispose'));
+
         if (this.isOpen) {
             this.close();
         }
 
         this.__transport.dispose();
+        unbindAll(this.__bus);
+
+        delete this.__transport;
+        delete this.__interval;
+        delete this.__pendingRequests;
+        delete this.__bus;
     }
 
     public open(): void {
@@ -104,7 +118,7 @@ export class Socket extends Observable {
         this.__pendingRequests = Object.create(null);
         this.__interval.start();
 
-        super.emit('open');
+        this.__bus.emit('open', new Event('open'));
     }
 
     public close(): void {
@@ -127,10 +141,10 @@ export class Socket extends Observable {
             });
         }
 
-        super.emit('close');
+        this.__bus.emit('close', new Event('close'));
     }
 
-    public emit(event: string, payload?: any): void {
+    public send(event: string, payload?: any): void {
         Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
         requires('event', event);
@@ -164,7 +178,7 @@ export class Socket extends Observable {
                         delete requests[req.id];
                     }
 
-                    super.emit('error', e);
+                    this.__bus.emit('error', new Event('error', e));
                 }
             }
         });
@@ -175,15 +189,26 @@ export class Socket extends Observable {
         handler: EventHandler,
         once: boolean = false,
     ): Subscription {
-        return super.on(`${EVENTS}/${name}`, handler, once);
+        return this.__subscribe(`${BUS_EVENTS}/${name}`, handler, once);
     }
 
     public onRequest(
         path: string,
-        handler: RequestHandler,
+        handler: RequestHandler | AsyncRequestHandler,
         once: boolean = false,
     ): Subscription {
-        return super.on(`${REQUESTS}/${path}`, handler, once);
+        return this.__subscribe(
+            `${BUS_REQUESTS}/${path}`,
+            this.__responder.bind(this, handler),
+            once,
+        );
+    }
+
+    public onError(
+        handler: EventHandler<Error>,
+        once: boolean = false,
+    ): Subscription {
+        return this.__subscribe('error', handler, once);
     }
 
     private __cleanup(): void {
@@ -213,38 +238,25 @@ export class Socket extends Observable {
     }
 
     private __handleEvent(data: any[]): void {
-        const [name, id, payload] = data;
+        const [name, payload] = data;
 
         try {
-            super.emit(`${EVENTS}/${name}`, new Event(name, payload));
+            this.__bus.emit(`${BUS_EVENTS}/${name}`, new Event(name, payload));
         } catch (e) {
-            super.emit('error', new Event('error', e));
+            this.__bus.emit('error', new Event('error', e));
         }
     }
 
     private __handleRequest(data: any[]): void {
         const [path, id, payload] = data;
-        const req = new InboundRequest(
-            path,
-            id,
-            payload,
-            this.__respond.bind(this),
-        );
+        const req = new InboundRequest(path, payload);
 
-        try {
-            const evt = `${REQUESTS}/${path}`;
+        const evt = `${BUS_REQUESTS}/${path}`;
 
-            if (super.__hasHandler(evt)) {
-                super.emit(evt, req);
-            } else {
-                req.reply(new NotFoundError(path));
-            }
-        } catch (e) {
-            if (!req.isDisposed()) {
-                req.reply(new UnhandledExceptionError(e));
-            } else {
-                super.emit('error', new Event('error', e));
-            }
+        if (this.__hasHandler(evt)) {
+            this.__bus.emit(evt, [id, req]);
+        } else {
+            this.__sendResponse(path, id, new NotFoundError(path));
         }
     }
 
@@ -269,10 +281,37 @@ export class Socket extends Observable {
         }
     }
 
-    private __respond(
+    private __responder(
+        handler: RequestHandler | AsyncRequestHandler,
+        data: any[],
+    ): void {
+        const [id, req] = data;
+
+        try {
+            const out = handler(req);
+
+            if (!isPromise(out)) {
+                if (!isError(out)) {
+                    return this.__sendResponse(req.path, id, undefined, out);
+                }
+
+                return this.__sendResponse(req.path, id, out);
+            }
+
+            (out as Promise<any>)
+                .then(data =>
+                    this.__sendResponse(req.path, id, undefined, data),
+                )
+                .catch(reason => this.__sendResponse(req.path, id, reason));
+        } catch (e) {
+            this.__sendResponse(req.path, id, new UnhandledExceptionError(e));
+        }
+    }
+
+    private __sendResponse(
         path: string,
         id: string,
-        err?: Error | string,
+        err?: string | Error,
         payload?: any,
     ): void {
         const data = err ? null : payload;
@@ -280,6 +319,10 @@ export class Socket extends Observable {
 
         if (isError(err)) {
             error = (err as Error).message;
+
+            setTimeout(() => {
+                this.__bus.emit('error', new Event('error', err));
+            });
         }
 
         this.__transport.send(
@@ -289,5 +332,38 @@ export class Socket extends Observable {
             error,
             data,
         );
+    }
+
+    private __hasHandler(event: string): boolean {
+        const handlers = (this.__bus as any).events[event];
+
+        return handlers != null && handlers.length > 0;
+    }
+
+    private __subscribe(
+        event: string,
+        listener: any,
+        once: boolean,
+    ): Subscription {
+        if (!once) {
+            return this.__bus.on(event, listener);
+        }
+
+        let unbind: Subscription | undefined = this.__bus.on(
+            event,
+            (args: any) => {
+                if (unbind != null) {
+                    listener(args);
+                    unbind();
+                    unbind = undefined;
+                }
+            },
+        );
+
+        return () => {
+            if (unbind != null) {
+                unbind();
+            }
+        };
     }
 }

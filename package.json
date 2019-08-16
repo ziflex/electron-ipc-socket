@@ -29,12 +29,14 @@
     "homepage": "https://github.com/ziflex/electron-ipc-socket#readme",
     "dependencies": {
         "is-error": "^2.2.2",
+        "is-promise": "^2.1.0",
         "nanoevents": "^2.0.0",
         "nanoid": "^2.0.3",
         "pinterval": "2.0.0"
     },
     "devDependencies": {
         "@types/chai": "^4.1.7",
+        "@types/is-promise": "^2.1.0",
         "@types/jsdom": "^12.2.4",
         "@types/mocha": "^5.2.7",
         "@types/nanoevents": "^1.0.0",
