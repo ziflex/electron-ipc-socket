@@ -1,61 +1,59 @@
 {
-  "name": "electron-ipc-socket",
-  "version": "1.2.4",
-  "description": "Response-request abstraction on top of Electron IPC system.",
-  "main": "lib/index.js",
-  "scripts": {
-    "lint": "echo eslint -c ./.eslintrc.json src",
-    "test": "npm run lint && mocha --reporter spec --compilers js:babel-register --recursive test",
-    "cover": "istanbul cover _mocha -- --compilers js:babel-register --recursive",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js  && rm -rf ./coverage",
-    "clean": "rimraf lib",
-    "build": "npm run test && npm run clean && babel src --out-dir lib",
-    "prepublish": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ziflex/electron-ipc-socket.git"
-  },
-  "keywords": [
-    "electron",
-    "socket",
-    "ipc",
-    "communication"
-  ],
-  "author": "Tim Voronov <ziflex@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ziflex/electron-ipc-socket/issues"
-  },
-  "homepage": "https://github.com/ziflex/electron-ipc-socket#readme",
-  "dependencies": {
-    "compose-class": "^1.0.0",
-    "disposable-decorator": "^1.0.0",
-    "disposable-mixin": "^1.0.0",
-    "es6-symbol": "^3.1.0",
-    "is-arguments": "^1.0.2",
-    "is-error": "^2.2.1",
-    "is-function": "^1.0.1",
-    "is-nil": "^1.0.1",
-    "is-object": "^1.0.1",
-    "uuid": "^2.0.3"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-eslint": "^7.1.0",
-    "babel-preset-es2015": "^6.16.0",
-    "babel-preset-stage-0": "^6.16.0",
-    "babel-register": "^6.18.0",
-    "chai": "^3.5.0",
-    "coveralls": "^2.11.14",
-    "eslint": "^3.9.1",
-    "eslint-config-airbnb": "^12.0.0",
-    "eslint-plugin-import": "^2.0.1",
-    "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-mocha": "^4.7.0",
-    "istanbul": "^1.0.0-alpha",
-    "jsdom": "^9.8.3",
-    "mocha": "^3.1.2",
-    "sinon": "^1.17.6"
-  }
+    "name": "electron-ipc-socket",
+    "version": "2.0.0",
+    "description": "Response-request abstraction on top of Electron IPC system.",
+    "main": "lib/index.js",
+    "scripts": {
+        "gh-pages": "git subtree push --prefix docs origin gh-pages",
+        "clean": "rimraf lib",
+        "build": "cross-env NODE_ENV=production npm run clean && tsc -b tsconfig.json",
+        "test": "cross-env NODE_ENV=test mocha",
+        "doc": "rimraf docs && typedoc --excludeProtected --excludePrivate --out docs && touch docs/.nojekyll",
+        "fmt": "pretty-quick"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ziflex/electron-ipc-socket.git"
+    },
+    "keywords": [
+        "electron",
+        "socket",
+        "ipc",
+        "communication"
+    ],
+    "author": "Tim Voronov <ziflex@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ziflex/electron-ipc-socket/issues"
+    },
+    "homepage": "https://github.com/ziflex/electron-ipc-socket#readme",
+    "dependencies": {
+        "is-error": "^2.2.2",
+        "nanoevents": "^2.0.0",
+        "nanoid": "^2.0.3",
+        "pinterval": "2.0.0"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.1.7",
+        "@types/jsdom": "^12.2.4",
+        "@types/mocha": "^5.2.7",
+        "@types/nanoevents": "^1.0.0",
+        "@types/nanoid": "^2.0.0",
+        "@types/node": "^12.7.0",
+        "@types/sinon": "^7.0.13",
+        "chai": "^4.2.0",
+        "cross-env": "^5.2.0",
+        "husky": "^3.0.2",
+        "jsdom": "^15.1.1",
+        "mocha": "^6.2.0",
+        "prettier": "^1.18.2",
+        "pretty-quick": "^1.11.1",
+        "sinon": "^7.4.1",
+        "source-map-support": "^0.5.13",
+        "ts-node": "^8.3.0",
+        "tslint": "^5.18.0",
+        "tslint-config-airbnb": "^5.11.1",
+        "tslint-config-prettier": "^1.18.0",
+        "typescript": "^3.5.3"
+    }
 }

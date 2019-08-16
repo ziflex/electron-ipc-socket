@@ -14,7 +14,7 @@ const ERR_ELEMENT_SEND_METHOD_NOT_FOUND = 'Element must have a "send" method';
 const FIELDS = {
     element: Symbol('element'),
     events: Symbol('events'),
-    handle: Symbol('handle')
+    handle: Symbol('handle'),
 };
 
 function findIndex(collection, iteratee) {
@@ -33,7 +33,7 @@ function findIndex(collection, iteratee) {
 }
 
 function removeAllHandlers(events) {
-    forEach(events, (handlers) => {
+    forEach(events, handlers => {
         handlers.length = 0;
     });
 }
@@ -62,25 +62,21 @@ function addHandler(events, eventName, eventHandler, once = false) {
 
     handlers.push({
         once,
-        handler: eventHandler
+        handler: eventHandler,
     });
 }
 
 function finalize(instance) {
-    instance[FIELDS.element].removeEventListener('ipc-message', instance[FIELDS.handle]);
+    instance[FIELDS.element].removeEventListener(
+        'ipc-message',
+        instance[FIELDS.handle],
+    );
 }
 
 const WebView = composeClass({
-    mixins: [
-        DisposableMixin([
-            FIELDS.element,
-            FIELDS.events
-        ], finalize)
-    ],
+    mixins: [DisposableMixin([FIELDS.element, FIELDS.events], finalize)],
 
-    decorators: [
-        disposableDecorator
-    ],
+    decorators: [disposableDecorator],
 
     constructor(element) {
         requires('element', element);
@@ -89,12 +85,12 @@ const WebView = composeClass({
 
         this[FIELDS.element] = element;
         this[FIELDS.events] = {};
-        this[FIELDS.handle] = (evt) => {
+        this[FIELDS.handle] = evt => {
             const handlers = this[FIELDS.events][evt.channel];
             const args = [evt].concat(evt.args);
             let toRemove = null;
 
-            forEach(handlers, (item) => {
+            forEach(handlers, item => {
                 item.handler.apply(null, args);
 
                 if (item.once) {
@@ -107,13 +103,20 @@ const WebView = composeClass({
             });
 
             if (toRemove) {
-                forEach(toRemove, (item) => {
-                    removeHandler(this[FIELDS.events], evt.channel, item.handler);
+                forEach(toRemove, item => {
+                    removeHandler(
+                        this[FIELDS.events],
+                        evt.channel,
+                        item.handler,
+                    );
                 });
             }
         };
 
-        this[FIELDS.element].addEventListener('ipc-message', this[FIELDS.handle]);
+        this[FIELDS.element].addEventListener(
+            'ipc-message',
+            this[FIELDS.handle],
+        );
     },
 
     addListener(eventName, eventHandler) {
@@ -152,7 +155,7 @@ const WebView = composeClass({
         this[FIELDS.element].send(channel, ...args);
 
         return this;
-    }
+    },
 });
 
 export default function create(...args) {

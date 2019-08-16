@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-expressions, import/no-extraneous-dependencies */
-import Element from './element';
+import { TransportInput, TransportOutput } from '../../src/transport';
+import { createElement } from './element';
 
-export default function create(ipc) {
-    const webview = Element('div');
+export function create(ipc: TransportInput & TransportOutput): any {
+    const webview = createElement('div');
 
     webview.addEventListener = (eventName, eventHandler) => {
         ipc.on(eventName, eventHandler);
@@ -12,7 +13,7 @@ export default function create(ipc) {
         ipc.removeListener(eventName, eventHandler);
     };
 
-    webview.send = (eventName, data) => {
+    (webview as any).send = (eventName, data) => {
         ipc.send(eventName, data);
     };
 

@@ -1,0 +1,31 @@
+{
+    "extends": ["tslint-config-airbnb", "tslint-config-prettier"],
+    "rules": {
+        "ter-indent": 4,
+        "import-name": false,
+        "no-unused-variable": [true, { "ignore-pattern": "^_" }],
+        "no-boolean-literal-compare": false,
+        "no-trailing-whitespace": [true, "ignore-comments"],
+        "strict-boolean-expressions": false,
+        "max-line-length": [true, 120],
+        "variable-name": false,
+        "function-name": false,
+        "member-access": true,
+        "newline-before-return": true,
+        "typedef": [
+            true,
+            "call-signature",
+            "parameter",
+            "member-variable-declaration"
+        ],
+        "ordered-imports": [
+            true,
+            {
+                "import-sources-order": "case-insensitive",
+                "named-imports-order": "lowercase-last",
+                "module-source-path": "full"
+            }
+        ],
+        "no-debugger": true
+    }
+}
