@@ -10,13 +10,13 @@ import { TimeoutError } from './errors/timeout';
 import { Event } from './event';
 import { InboundRequest } from './inbound-request';
 import { OutboundRequest } from './outbound-request';
-import { Response } from './response';
 import { Transport, TransportInput, TransportOutput } from './transport';
 import { assert, requires } from './utils/assertions';
+import { NotFoundError } from './errors/not-found';
 
-const REQUESTS = Math.random().toString();
-const RESPONSES = Math.random().toString();
-const EVENTS = Math.random().toString();
+const REQUESTS = 'requests';
+const RESPONSES = 'responses';
+const EVENTS = 'events';
 
 export type RequestHandler = (req: InboundRequest) => void;
 export type EventHandler = (evt: Event) => void;
@@ -138,7 +138,7 @@ export class Socket extends Observable {
         this.__transport.send(`${this.__channel}:${EVENTS}`, event, payload);
     }
 
-    public async request(path: string, payload?: any): Promise<Response> {
+    public async request<T = any>(path: string, payload?: any): Promise<T> {
         Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
         requires('path', path);
@@ -232,7 +232,13 @@ export class Socket extends Observable {
         );
 
         try {
-            super.emit(`${REQUESTS}/${path}`, req);
+            const evt = `${REQUESTS}/${path}`;
+
+            if (super.__hasHandler(evt)) {
+                super.emit(evt, req);
+            } else {
+                req.reply(new NotFoundError(path));
+            }
         } catch (e) {
             if (!req.isDisposed()) {
                 req.reply(new UnhandledExceptionError(e));
@@ -249,7 +255,7 @@ export class Socket extends Observable {
             return;
         }
 
-        const [path, id, err, payload] = data;
+        const [_, id, err, payload] = data;
         const request = requests[id];
 
         if (request) {

@@ -1,5 +1,5 @@
 export class NotFoundError extends Error {
     constructor(path: string) {
-        super(`Handler for "${path}" not found`);
+        super(`Request handler for "${path}" path not found`);
     }
 }

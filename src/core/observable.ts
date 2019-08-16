@@ -54,4 +54,10 @@ export class Observable extends Disposable {
             }
         };
     }
+
+    protected __hasHandler(event: string): boolean {
+        const events = (this.__emitter as any).events[event] as any[];
+
+        return events != null && events.length > 0;
+    }
 }

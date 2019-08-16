@@ -1,3 +1,4 @@
+import nanoid from 'nanoid';
 import { Disposable } from './core/disposable';
 import { Observable, Subscriber, Subscription } from './core/observable';
 import { RequiredError } from './errors/required';
@@ -23,6 +24,12 @@ export interface TransportOutput {
 export class Transport extends Observable {
     private __input: TransportInput;
     private __output: TransportOutput;
+    private __listeners: {
+        [id: string]: {
+            channel: string | symbol;
+            fn: TransportInputListener;
+        };
+    };
 
     constructor(
         input: TransportInput | TransportInput & TransportOutput,
@@ -56,10 +63,17 @@ export class Transport extends Observable {
 
         this.__input = int;
         this.__output = out;
+        this.__listeners = Object.create(null);
     }
 
     public dispose(): void {
         super.dispose();
+
+        Object.keys(this.__listeners).forEach((id: string) => {
+            this.__unsubscribe(id);
+        });
+
+        delete this.__listeners;
     }
 
     public send(channel: string, ...args: any[]): void {
@@ -79,15 +93,29 @@ export class Transport extends Observable {
         requires('subscriber', subscriber);
 
         const fn = !once ? this.__input.on : this.__input.once;
-
-        fn.call(this.__input, channel, (_: any, ...args: any[]) => {
+        const listener = (_: any, ...args: any[]) => {
             subscriber(args);
-        });
-
-        return () => {
-            if (this.__input != null) {
-                this.__input.removeListener(channel, subscriber);
-            }
         };
+
+        fn.call(this.__input, channel, listener);
+
+        const id = nanoid();
+
+        this.__listeners[id] = {
+            channel,
+            fn: listener,
+        };
+
+        return this.__unsubscribe.bind(this, id);
+    }
+
+    private __unsubscribe(id: string): void {
+        const pair = this.__listeners[id];
+
+        if (pair != null) {
+            this.__input.removeListener(pair.channel, pair.fn);
+        }
+
+        delete this.__listeners[id];
     }
 }
