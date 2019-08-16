@@ -5,8 +5,8 @@
 Response-request abstraction on top of Electron IPC system.
 
 [![npm version](https://badge.fury.io/js/electron-ipc-socket.svg)](https://www.npmjs.com/package/electron-ipc-socket)
-[![Build Status](https://secure.travis-ci.org/ziflex/electron-ipc-socket.svg?branch=master)](http://travis-ci.org/ziflex/electron-ipc-socket)
-[![Coverage Status](https://coveralls.io/repos/github/ziflex/electron-ipc-socket/badge.svg?branch=master)](https://coveralls.io/github/ziflex/electron-ipc-socket)
+[![Actions Status](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/badge/ziflex/electron-ipc-socket)](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/ziflex/electron-ipc-socket)
+
 
 ````sh
     npm install --save electron-ipc-socket
