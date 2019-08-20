@@ -1,3 +1,11 @@
+## 2.1.0
+
+### Changed
+- ``Socket.open`` now requires a channel
+
+## 2.0.0
+- New API
+
 ## 1.2.4
 
 ### Fixed

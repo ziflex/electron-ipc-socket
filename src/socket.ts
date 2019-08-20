@@ -1,10 +1,9 @@
+import { Disposable, free, protect } from 'disposable-class';
 import isError from 'is-error';
-import isPromise = require('is-promise');
+import isPromise from 'is-promise';
 import NanoEvents from 'nanoevents';
 import unbindAll from 'nanoevents/unbind-all';
 import { Interval } from 'pinterval';
-import { Disposable } from './core/disposable';
-import { Subscription } from './core/observable';
 import { ConnectionLostError } from './errors/connection';
 import { UnhandledExceptionError } from './errors/exception';
 import { NotFoundError } from './errors/not-found';
@@ -13,6 +12,7 @@ import { SocketClosedError, SocketOpenError } from './errors/socket';
 import { TimeoutError } from './errors/timeout';
 import { Event } from './event';
 import { InboundRequest } from './inbound-request';
+import { Subscription } from './observable';
 import { OutboundRequest } from './outbound-request';
 import { Transport, TransportInput, TransportOutput } from './transport';
 import { assert, requires } from './utils/assertions';
@@ -37,24 +37,29 @@ export interface Settings {
  */
 export class Socket extends Disposable {
     private __isOpen: boolean;
-    private __channel: string;
-    private __transport: Transport;
-    private __bus: NanoEvents<any>;
-    private __interval: Interval;
+    private __channel?: string;
     private __requestTimeout: number;
+
+    @free()
+    private __transport: Transport;
+
+    @free({ call: unbindAll })
+    private __bus: NanoEvents<any>;
+
+    @free({ call: 'stop', check: 'isRunning' })
+    private __interval: Interval;
+
+    @free()
     private __pendingRequests?: { [id: string]: OutboundRequest };
+
+    @free()
     private __subscriptions?: Subscription[];
 
     constructor(
-        channel: string,
         transport: Transport | TransportInput & TransportOutput,
         settings: Settings = {},
     ) {
         super();
-
-        if (typeof channel !== 'string' || channel.trim() === '') {
-            throw new RequiredError('channel id');
-        }
 
         if (transport == null) {
             throw new RequiredError('transport');
@@ -67,7 +72,6 @@ export class Socket extends Disposable {
         }
 
         this.__isOpen = false;
-        this.__channel = channel;
         this.__requestTimeout = settings.timeout || 1000 * 60;
         this.__interval = new Interval({
             func: this.__cleanup.bind(this),
@@ -76,17 +80,18 @@ export class Socket extends Disposable {
         this.__bus = new NanoEvents();
     }
 
-    /*
+    /**
      * Indicates whether the socket is open.
      */
     public get isOpen(): boolean {
         return this.__isOpen;
     }
 
-    /*
+    /**
      * Destroys the instance.
      * After invoking the method, the instance cannot be used anymore.
      */
+    @protect({ err: true })
     public dispose(): void {
         super.dispose();
 
@@ -95,24 +100,16 @@ export class Socket extends Disposable {
         if (this.isOpen) {
             this.close();
         }
-
-        this.__transport.dispose();
-        unbindAll(this.__bus);
-
-        delete this.__transport;
-        delete this.__interval;
-        delete this.__pendingRequests;
-        delete this.__bus;
     }
 
-    /*
+    /**
      * Opens connection and starts receiving events and requests.
+     * @param channel - Target channel to connect.
      */
-    public open(): void {
-        Disposable.assert(this);
+    @protect({ err: true })
+    public open(channel: string): void {
         assert(SocketOpenError, !this.isOpen);
 
-        const channel = this.__channel;
         const transport = this.__transport;
 
         this.__subscriptions = [
@@ -128,21 +125,23 @@ export class Socket extends Disposable {
         ];
 
         this.__isOpen = true;
+        this.__channel = channel;
         this.__pendingRequests = Object.create(null);
         this.__interval.start();
 
         this.__bus.emit('open', new Event('open'));
     }
 
-    /*
-     * Closes the connections and stops receiving events and requests.
+    /**
+     * Closes the current channel, connections and stops receiving events and requests.
      * All pending outgoing requests get cancelled.
      */
+    @protect({ err: true })
     public close(): void {
-        Disposable.assert(this);
         assert(SocketClosedError, this.isOpen);
 
         this.__isOpen = false;
+        this.__channel = undefined;
         this.__interval.stop();
 
         if (this.__subscriptions != null) {
@@ -161,22 +160,26 @@ export class Socket extends Disposable {
         this.__bus.emit('close', new Event('close'));
     }
 
-    /*
+    /**
      * Sends an event.
+     * @param event Event name.
+     * @param payload Event payload.
      */
+    @protect({ err: true })
     public send(event: string, payload?: any): void {
-        Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
         requires('event', event);
 
         this.__transport.send(`${this.__channel}:${EVENTS}`, event, payload);
     }
 
-    /*
+    /**
      * Sends a request.
+     * @param path Request path.
+     * @param payload Request payload.
      */
+    @protect({ err: true })
     public async request<T = any>(path: string, payload?: any): Promise<T> {
-        Disposable.assert(this);
         assert(SocketClosedError, this.__isOpen);
         requires('path', path);
 
@@ -207,8 +210,11 @@ export class Socket extends Disposable {
         });
     }
 
-    /*
+    /**
      * Registers an event listener.
+     * @param name Event name.
+     * @param handler Event handler.
+     * @param once Value indicating whether to handle the event only once.
      */
     public onEvent(
         name: string,
@@ -218,8 +224,11 @@ export class Socket extends Disposable {
         return this.__subscribe(`${BUS_EVENTS}/${name}`, handler, once);
     }
 
-    /*
+    /**
      * Registers a request handler.
+     * @param path Request path.
+     * @param handler Request handler.
+     * @param once Value indicating whether to handle the request only once.
      */
     public onRequest(
         path: string,
@@ -233,8 +242,10 @@ export class Socket extends Disposable {
         );
     }
 
-    /*
+    /**
      * Registers an error event listener.
+     * @param handler Error handler.
+     * @param once Value indicating whether to handle any errors only once.
      */
     public onError(
         handler: EventHandler<Error>,

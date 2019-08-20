@@ -5,8 +5,7 @@
 Response-request abstraction on top of Electron IPC system.
 
 [![npm version](https://badge.fury.io/js/electron-ipc-socket.svg)](https://www.npmjs.com/package/electron-ipc-socket)
-[![Actions Status](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/badge/ziflex/electron-ipc-socket)](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/ziflex/electron-ipc-socket)
-
+[![Actions Status](https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg)](https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg)
 
 ```sh
     npm install --save electron-ipc-socket
@@ -30,9 +29,9 @@ import fs from 'fs';
 
 const win = new BrowserWindow();
 
-const socket = new Socket('main-win', new Transport(ipcMain, win));
+const socket = new Socket(new Transport(ipcMain, win));
 
-socket.open();
+socket.open('main-win');
 
 socket.onEvent('ready', (evt: Event) => {
     console.log('Renderer process is ready');
@@ -45,9 +44,9 @@ socket.onEvent('ready', (evt: Event) => {
 import { ipcRenderer } from 'electron';
 import { Socket } from 'electron-ipc-socket';
 
-const socket = new Socket('main-win', ipcRenderer);
+const socket = new Socket(ipcRenderer);
 
-socket.open();
+socket.open('main-win');
 
 socket.send('ready');
 ```
@@ -63,9 +62,9 @@ import fs from 'fs';
 
 const win = new BrowserWindow();
 
-const socket = new Socket('main-win', new Transport(ipcMain, win));
+const socket = new Socket(new Transport(ipcMain, win));
 
-socket.open();
+socket.open('main-win');
 
 socket.onRequest('ping', (req: InboundRequest) => {
     return 'pong';
@@ -78,9 +77,9 @@ socket.onRequest('ping', (req: InboundRequest) => {
 import { ipcRenderer } from 'electron';
 import { Socket } from 'electron-ipc-socket';
 
-const socket = new Socket('main-win', ipcRenderer);
+const socket = new Socket(ipcRenderer);
 
-socket.open();
+socket.open('main-win');
 
 socket
     .request('ping')
@@ -101,9 +100,9 @@ import util from 'util';
 const read = util.promisify(fs.read);
 const win = new BrowserWindow();
 
-const socket = new Socket('main-win', new Transport(ipcMain, win));
+const socket = new Socket(new Transport(ipcMain, win));
 
-socket.open();
+socket.open('main-win');
 
 socket.onRequest('file', async (req: InboundRequest) => {
     return read(req.data);
@@ -116,9 +115,9 @@ socket.onRequest('file', async (req: InboundRequest) => {
 import { ipcRenderer } from 'electron';
 import { Socket } from 'electron-ipc-socket';
 
-const socket = new Socket('main-win', ipcRenderer);
+const socket = new Socket(ipcRenderer);
 
-socket.open();
+socket.open('main-win');
 
 socket
     .request('file', 'package.json')

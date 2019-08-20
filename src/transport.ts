@@ -1,8 +1,8 @@
+import { Disposable, protect } from 'disposable-class';
 import nanoid from 'nanoid';
-import { Disposable } from './core/disposable';
-import { Subscriber, Subscription } from './core/observable';
 import { RequiredError } from './errors/required';
 import { InvalidInputError, InvalidOutputError } from './errors/transport';
+import { Subscriber, Subscription } from './observable';
 import { requires } from './utils/assertions';
 
 export interface TransportInput {
@@ -86,8 +86,8 @@ export class Transport extends Disposable {
     /*
      * Sends a data via an underlying output.
      */
+    @protect({ err: true })
     public send(channel: string, ...args: any[]): void {
-        Disposable.assert(this);
         requires('channel', channel);
 
         this.__output.send(channel, ...args);
@@ -96,8 +96,8 @@ export class Transport extends Disposable {
     /*
      * Registers an event listener.
      */
+    @protect({ err: true })
     public on(channel: string, subscriber: Subscriber): Subscription {
-        Disposable.assert(this);
         requires('channel', channel);
         requires('subscriber', subscriber);
 

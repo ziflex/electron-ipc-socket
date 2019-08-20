@@ -17,6 +17,7 @@
         "sourceMap": false,
         "inlineSourceMap": false,
         "outDir": "lib" /* Redirect output structure to the directory. */,
+        "experimentalDecorators": true,
 
         /* Strict Type-Checking Options */
         "strict": true /* Enable all strict type-checking options. */,

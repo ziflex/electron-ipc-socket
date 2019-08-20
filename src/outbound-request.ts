@@ -1,5 +1,5 @@
+import { Disposable } from 'disposable-class';
 import nanoid from 'nanoid';
-import { Disposable } from './core/disposable';
 import { InvalidTypeError } from './errors/invalid-type';
 
 export type OutboundRequestResolveCallback = (data?: any) => void;

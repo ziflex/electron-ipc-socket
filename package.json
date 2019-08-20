@@ -1,6 +1,6 @@
 {
     "name": "electron-ipc-socket",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Response-request abstraction on top of Electron IPC system.",
     "main": "lib/index.js",
     "scripts": {
@@ -28,6 +28,7 @@
     },
     "homepage": "https://github.com/ziflex/electron-ipc-socket#readme",
     "dependencies": {
+        "disposable-class": "^1.0.0",
         "is-error": "^2.2.2",
         "is-promise": "^2.1.0",
         "nanoevents": "^2.0.0",

@@ -17,17 +17,27 @@ describe('Socket', () => {
     beforeEach(() => {
         const ipc = new IPC();
 
-        s1 = new Socket('user-channel', new Transport(ipc.input, ipc.output));
-        s2 = new Socket('user-channel', new Transport(ipc.output, ipc.input));
+        s1 = new Socket(new Transport(ipc.input, ipc.output));
+        s2 = new Socket(new Transport(ipc.output, ipc.input));
     });
+
+    afterEach(() => {
+        if (s1.isOpen) {
+            s1.close();
+        }
+
+        if (s2.isOpen) {
+            s2.close();
+        }
+    })
 
     describe('.open', () => {
         it('should subscribe to event via transport', () => {
             const ipc = new IPC();
             const on = sinon.spy(ipc, 'on');
-            const socket = new Socket('test_channel', ipc);
+            const socket = new Socket(ipc);
 
-            socket.open();
+            socket.open('test_channel');
 
             expect(on.callCount).to.eql(3);
 
@@ -36,12 +46,12 @@ describe('Socket', () => {
 
         context('When is open', () => {
             it('should throw an error', () => {
-                const socket = new Socket('test_channel', new IPC());
+                const socket = new Socket(new IPC());
 
-                socket.open();
+                socket.open('test_channel');
 
                 expect(() => {
-                    return socket.open();
+                    return socket.open('test_channel');
                 }).to.throw(Error);
 
                 socket.close();
@@ -52,7 +62,7 @@ describe('Socket', () => {
     describe('.close', () => {
         context('When is open', () => {
             it('should remove listeners and pending requests', async () => {
-                s1.open();
+                s1.open('test_channel');
 
                 const onSuccess = sinon.spy();
                 const onFailure = sinon.spy();
@@ -86,7 +96,7 @@ describe('Socket', () => {
                 }).to.throw(Error);
 
                 expect(() => {
-                    s1.open();
+                    s1.open('test_channel');
                     s1.close();
                     s1.close();
                 }).to.throw(Error);
@@ -97,27 +107,29 @@ describe('Socket', () => {
     describe('.isOpen', () => {
         context('When is open', () => {
             it('should return "true"', () => {
-                const socket = new Socket('test_channel', new IPC());
+                const socket = new Socket(new IPC());
 
-                socket.open();
+                socket.open('test_channel');
 
                 expect(socket.isOpen).to.be.true;
 
                 socket.close();
 
-                socket.open();
+                socket.open('test_channel');
 
                 expect(socket.isOpen).to.be.true;
+
+                socket.close();
             });
         });
 
         context('When is closed', () => {
             it('should return "true"', () => {
-                const socket = new Socket('test_channel', new IPC());
+                const socket = new Socket(new IPC());
 
                 expect(socket.isOpen).to.be.false;
 
-                socket.open();
+                socket.open('test_channel');
 
                 expect(socket.isOpen).to.be.true;
 
@@ -130,8 +142,8 @@ describe('Socket', () => {
 
     describe('.request', () => {
         it('should send a request and recieve response', async () => {
-            s1.open();
-            s2.open();
+            s1.open('test_channel');
+            s2.open('test_channel');
 
             const onRequest = sinon.spy();
 
@@ -146,12 +158,15 @@ describe('Socket', () => {
             expect(onRequest.callCount).to.equal(1);
             expect(onRequest.args[0][0]).to.eql('foo');
             expect(resp).to.eql({ foo: 'bar' });
+
+            s1.close();
+            s2.close();
         });
 
         context('When no request handler', () => {
             it('should resolve request with error', async () => {
-                s1.open();
-                s2.open();
+                s1.open('test_channel');
+                s2.open('test_channel');
 
                 try {
                     await s1.request('test', 'foo');
@@ -160,6 +175,9 @@ describe('Socket', () => {
                         'Request handler for "test" path not found',
                     );
                 }
+
+                s1.close();
+                s2.close();
             });
         });
     });
@@ -169,8 +187,8 @@ describe('Socket', () => {
             const onRequest = sinon.spy();
             const onEvent = sinon.spy();
 
-            s1.open();
-            s2.open();
+            s1.open('test_channel');
+            s2.open('test_channel');
 
             s1.onRequest('test', (req: InboundRequest) => {
                 onRequest(req.path, req.data);
@@ -183,12 +201,15 @@ describe('Socket', () => {
             expect(onRequest.callCount).to.equal(1);
             expect(onRequest.args[0][0]).to.eql('test');
             expect(onRequest.args[0][1]).to.eql('foo');
+
+            s1.close();
+            s2.close();
         });
 
         it('should reply with error', async () => {
             const onError = sinon.spy();
-            s1.open();
-            s2.open();
+            s1.open('test_channel');
+            s2.open('test_channel');
 
             s1.onRequest('test', (req: InboundRequest) => {
                 return new Error('test');
@@ -201,12 +222,15 @@ describe('Socket', () => {
             }
 
             expect(onError.called).to.be.true;
+
+            s1.close();
+            s2.close();
         });
 
         context('When error occurs in request handler', () => {
             it('should handle error and respond', async () => {
-                s1.open();
-                s2.open();
+                s1.open('test_channel');
+                s2.open('test_channel');
 
                 s1.onRequest('test', () => {
                     throw new Error('test');
@@ -217,6 +241,9 @@ describe('Socket', () => {
                 } catch (e) {
                     expect(e).to.be.instanceOf(Error);
                 }
+
+                s1.close();
+                s2.close();
             });
         });
 
@@ -225,8 +252,8 @@ describe('Socket', () => {
                 const onEvent = sinon.spy();
                 const onRequest = sinon.spy();
 
-                s1.open();
-                s2.open();
+                s1.open('test_channel');
+                s2.open('test_channel');
 
                 s1.onEvent('test', onEvent);
                 s1.onRequest('test', onRequest);
@@ -237,6 +264,9 @@ describe('Socket', () => {
 
                 expect(onEvent.callCount).to.equal(1);
                 expect(onRequest.callCount).to.equal(0);
+
+                s1.close();
+                s2.close();
             });
         });
 
@@ -246,8 +276,8 @@ describe('Socket', () => {
 
                 s1.onError(onError);
 
-                s1.open();
-                s2.open();
+                s1.open('test_channel');
+                s2.open('test_channel');
 
                 s1.onRequest('test', () => {
                     throw new Error('test');
@@ -260,6 +290,9 @@ describe('Socket', () => {
                 await sleep(10);
 
                 expect(onError.called).to.be.true;
+
+                s1.close();
+                s2.close();
             });
         });
     });
