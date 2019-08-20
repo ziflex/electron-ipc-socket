@@ -25,3 +25,5 @@ classes/
 dump.rdb
 src
 test
+docs
+.github/
