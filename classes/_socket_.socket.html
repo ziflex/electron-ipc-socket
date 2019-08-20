@@ -71,7 +71,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<a href="_core_disposable_.disposable.html" class="tsd-signature-type">Disposable</a>
+						<span class="tsd-signature-type">Disposable</span>
 						<ul class="tsd-hierarchy">
 							<li>
 								<span class="target">Socket</span>
@@ -83,7 +83,7 @@
 			<section class="tsd-panel">
 				<h3>Implements</h3>
 				<ul class="tsd-hierarchy">
-					<li><a href="../interfaces/_core_disposable_.disposableobject.html" class="tsd-signature-type">DisposableObject</a></li>
+					<li><span class="tsd-signature-type">DisposableObject</span></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -93,7 +93,7 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="_socket_.socket.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_socket_.socket.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -114,7 +114,9 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_socket_.socket.html#open" class="tsd-kind-icon">open</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="_socket_.socket.html#request" class="tsd-kind-icon">request</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_socket_.socket.html#send" class="tsd-kind-icon">send</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="_socket_.socket.html#assert" class="tsd-kind-icon">assert</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="_socket_.socket.html#dereference" class="tsd-kind-icon">dereference</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="_socket_.socket.html#dispose-1" class="tsd-kind-icon">dispose</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="_socket_.socket.html#isdisposable" class="tsd-kind-icon">is<wbr>Disposable</a></li>
 							</ul>
 						</section>
 					</div>
@@ -122,25 +124,21 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Socket<span class="tsd-signature-symbol">(</span>channel<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, transport<span class="tsd-signature-symbol">: </span><a href="_transport_.transport.html" class="tsd-signature-type">Transport</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_transport_.transportinput.html" class="tsd-signature-type">TransportInput</a><span class="tsd-signature-symbol"> &amp; </span><a href="../interfaces/_transport_.transportoutput.html" class="tsd-signature-type">TransportOutput</a>, settings<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_socket_.settings.html" class="tsd-signature-type">Settings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_socket_.socket.html" class="tsd-signature-type">Socket</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Socket<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">: </span><a href="_transport_.transport.html" class="tsd-signature-type">Transport</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_transport_.transportinput.html" class="tsd-signature-type">TransportInput</a><span class="tsd-signature-symbol"> &amp; </span><a href="../interfaces/_transport_.transportoutput.html" class="tsd-signature-type">TransportOutput</a>, settings<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_socket_.settings.html" class="tsd-signature-type">Settings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_socket_.socket.html" class="tsd-signature-type">Socket</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Overrides <a href="_core_disposable_.disposable.html">Disposable</a>.<a href="_core_disposable_.disposable.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L46">socket.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L56">socket.ts:56</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
-								<li>
-									<h5>channel: <span class="tsd-signature-type">string</span></h5>
-								</li>
 								<li>
 									<h5>transport: <a href="_transport_.transport.html" class="tsd-signature-type">Transport</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_transport_.transportinput.html" class="tsd-signature-type">TransportInput</a><span class="tsd-signature-symbol"> &amp; </span><a href="../interfaces/_transport_.transportoutput.html" class="tsd-signature-type">TransportOutput</a></h5>
 								</li>
@@ -165,9 +163,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L82">socket.ts:82</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L86">socket.ts:86</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Indicates whether the socket is open.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
@@ -185,9 +188,15 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L141">socket.ts:141</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L140">socket.ts:140</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Closes the current channel, connections and stops receiving events and requests.
+									All pending outgoing requests get cancelled.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -201,12 +210,17 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/_core_disposable_.disposableobject.html">DisposableObject</a>.<a href="../interfaces/_core_disposable_.disposableobject.html#dispose">dispose</a></p>
-								<p>Overrides <a href="_core_disposable_.disposable.html">Disposable</a>.<a href="_core_disposable_.disposable.html#dispose">dispose</a></p>
+								<p>Overrides Disposable.dispose</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L90">socket.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L95">socket.ts:95</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Destroys the instance.
+									After invoking the method, the instance cannot be used anymore.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -220,12 +234,16 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/_core_disposable_.disposableobject.html">DisposableObject</a>.<a href="../interfaces/_core_disposable_.disposableobject.html#isdisposed">isDisposed</a></p>
-								<p>Inherited from <a href="_core_disposable_.disposable.html">Disposable</a>.<a href="_core_disposable_.disposable.html#isdisposed">isDisposed</a></p>
+								<p>Inherited from Disposable.isDisposed</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/core/disposable.ts#L26">core/disposable.ts:26</a></li>
+									<li>Defined in /Users/timofei.voronov/Work/src/github.com/ziflex/electron-ipc-socket/node_modules/disposable-class/lib/index.d.ts:68</li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Indicates whether the instance is already disposed.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
@@ -234,25 +252,36 @@
 					<a name="onerror" class="tsd-anchor"></a>
 					<h3>on<wbr>Error</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Error<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Error</span><span class="tsd-signature-symbol">&gt;</span>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Error<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Error</span><span class="tsd-signature-symbol">&gt;</span>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L239">socket.ts:239</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L250">socket.ts:250</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Registers an error event listener.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>handler: <a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Error</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Error handler.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> once: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value indicating whether to handle any errors only once.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -260,28 +289,42 @@
 					<a name="onevent" class="tsd-anchor"></a>
 					<h3>on<wbr>Event</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Event<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Event<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L213">socket.ts:213</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L219">socket.ts:219</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Registers an event listener.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Event name.</p>
+									</div>
 								</li>
 								<li>
 									<h5>handler: <a href="../modules/_socket_.html#eventhandler" class="tsd-signature-type">EventHandler</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Event handler.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> once: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value indicating whether to handle the event only once.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -289,28 +332,42 @@
 					<a name="onrequest" class="tsd-anchor"></a>
 					<h3>on<wbr>Request</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">on<wbr>Request<span class="tsd-signature-symbol">(</span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#requesthandler" class="tsd-signature-type">RequestHandler</a><span class="tsd-signature-symbol"> | </span><a href="../modules/_socket_.html#asyncrequesthandler" class="tsd-signature-type">AsyncRequestHandler</a>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Request<span class="tsd-signature-symbol">(</span>path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, handler<span class="tsd-signature-symbol">: </span><a href="../modules/_socket_.html#requesthandler" class="tsd-signature-type">RequestHandler</a><span class="tsd-signature-symbol"> | </span><a href="../modules/_socket_.html#asyncrequesthandler" class="tsd-signature-type">AsyncRequestHandler</a>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L224">socket.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L233">socket.ts:233</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Registers a request handler.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>path: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Request path.</p>
+									</div>
 								</li>
 								<li>
 									<h5>handler: <a href="../modules/_socket_.html#requesthandler" class="tsd-signature-type">RequestHandler</a><span class="tsd-signature-symbol"> | </span><a href="../modules/_socket_.html#asyncrequesthandler" class="tsd-signature-type">AsyncRequestHandler</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Request handler.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> once: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value indicating whether to handle the request only once.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../modules/_core_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../modules/_observable_.html#subscription" class="tsd-signature-type">Subscription</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -318,15 +375,29 @@
 					<a name="open" class="tsd-anchor"></a>
 					<h3>open</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">open<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">open<span class="tsd-signature-symbol">(</span>channel<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L111">socket.ts:111</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L110">socket.ts:110</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Opens connection and starts receiving events and requests.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>channel: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Target channel to connect.</p>
+									</div>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -341,9 +412,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L178">socket.ts:178</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L182">socket.ts:182</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sends a request.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -354,9 +430,15 @@
 							<ul class="tsd-parameters">
 								<li>
 									<h5>path: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Request path.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> payload: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Request payload.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -373,16 +455,27 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/socket.ts#L167">socket.ts:167</a></li>
+									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/92b099c/src/socket.ts#L169">socket.ts:169</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sends an event.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>event: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Event name.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> payload: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Event payload.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -390,26 +483,113 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-					<a name="assert" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> assert</h3>
+					<a name="dereference" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> dereference</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">assert<span class="tsd-signature-symbol">(</span>other<span class="tsd-signature-symbol">: </span><a href="../interfaces/_core_disposable_.disposableobject.html" class="tsd-signature-type">DisposableObject</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">dereference<span class="tsd-signature-symbol">(</span>object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object</span>, keys<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Property</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="_core_disposable_.disposable.html">Disposable</a>.<a href="_core_disposable_.disposable.html#assert">assert</a></p>
+								<p>Inherited from Disposable.dereference</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/ziflex/electron-ipc-socket/blob/d014063/src/core/disposable.ts#L11">core/disposable.ts:11</a></li>
+									<li>Defined in /Users/timofei.voronov/Work/src/github.com/ziflex/electron-ipc-socket/node_modules/disposable-class/lib/index.d.ts:64</li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dereferences object&#39;s keys.
+									If a value of a key implements [[DisposableObject]] interface, [dispose] method of the value will be invoked.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>other: <a href="../interfaces/_core_disposable_.disposableobject.html" class="tsd-signature-type">DisposableObject</a></h5>
+									<h5>object: <span class="tsd-signature-type">Object</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Target object.</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> keys: <span class="tsd-signature-type">Property</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Keys to dereference. Optional. By default all keys will be dereferenced.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="dispose-1" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> dispose</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">dispose<span class="tsd-signature-symbol">(</span>object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DisposableObject</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Object</span>, deref<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from Disposable.dispose</p>
+								<ul>
+									<li>Defined in /Users/timofei.voronov/Work/src/github.com/ziflex/electron-ipc-socket/node_modules/disposable-class/lib/index.d.ts:57</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Tries to dispose a given object if it implements [[DisposableObject]] interface.
+										If the object does not implement the interface,
+									but [deref] param is passed, the method will try to dereference all object&#39;s keys.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>object: <span class="tsd-signature-type">DisposableObject</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Object</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Target object to dispose.</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> deref: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A value indicating whether to perform dereferncing.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="isdisposable" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> is<wbr>Disposable</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Disposable<span class="tsd-signature-symbol">(</span>object<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from Disposable.isDisposable</p>
+								<ul>
+									<li>Defined in /Users/timofei.voronov/Work/src/github.com/ziflex/electron-ipc-socket/node_modules/disposable-class/lib/index.d.ts:49</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Indicates if a given object implements [[DisposableObject]] interface.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> object: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Target object.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -434,6 +614,9 @@
 						<a href="../modules/_index_.html">"index"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="../modules/_observable_.html">"observable"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_outbound_request_.html">"outbound-<wbr>request"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
@@ -444,12 +627,6 @@
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_core_disposable_.html">"core/disposable"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_core_observable_.html">"core/observable"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_errors_connection_.html">"errors/connection"</a>
@@ -490,7 +667,7 @@
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
 						<a href="_socket_.socket.html" class="tsd-kind-icon">Socket</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
 								<a href="_socket_.socket.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
@@ -524,7 +701,13 @@
 								<a href="_socket_.socket.html#send" class="tsd-kind-icon">send</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-								<a href="_socket_.socket.html#assert" class="tsd-kind-icon">assert</a>
+								<a href="_socket_.socket.html#dereference" class="tsd-kind-icon">dereference</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="_socket_.socket.html#dispose-1" class="tsd-kind-icon">dispose</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="_socket_.socket.html#isdisposable" class="tsd-kind-icon">is<wbr>Disposable</a>
 							</li>
 						</ul>
 					</li>

@@ -70,7 +70,7 @@
 				</blockquote>
 				<p>Response-request abstraction on top of Electron IPC system.</p>
 				<p><a href="https://www.npmjs.com/package/electron-ipc-socket"><img src="https://badge.fury.io/js/electron-ipc-socket.svg" alt="npm version"></a>
-				<a href="https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/ziflex/electron-ipc-socket"><img src="https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/badge/ziflex/electron-ipc-socket" alt="Actions Status"></a></p>
+				<a href="https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg"><img src="https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg" alt="Actions Status"></a></p>
 				<pre><code class="language-sh">    npm install --save electron-ipc-socket</code></pre>
 				<a href="#motivation" id="motivation" style="color: inherit; text-decoration: none;">
 					<h2>Motivation</h2>
@@ -91,9 +91,9 @@
 
 <span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, <span class="hljs-keyword">new</span> Transport(ipcMain, win));
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket.onEvent(<span class="hljs-string">'ready'</span>, <span class="hljs-function">(<span class="hljs-params">evt: Event</span>) =&gt;</span> {
     <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Renderer process is ready'</span>);
@@ -103,9 +103,9 @@ socket.onEvent(<span class="hljs-string">'ready'</span>, <span class="hljs-funct
 <span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
 <span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, ipcRenderer);
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket.send(<span class="hljs-string">'ready'</span>);</code></pre>
 				<a href="#request-response" id="request-response" style="color: inherit; text-decoration: none;">
@@ -119,9 +119,9 @@ socket.send(<span class="hljs-string">'ready'</span>);</code></pre>
 
 <span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, <span class="hljs-keyword">new</span> Transport(ipcMain, win));
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket.onRequest(<span class="hljs-string">'ping'</span>, <span class="hljs-function">(<span class="hljs-params">req: InboundRequest</span>) =&gt;</span> {
     <span class="hljs-keyword">return</span> <span class="hljs-string">'pong'</span>;
@@ -131,9 +131,9 @@ socket.onRequest(<span class="hljs-string">'ping'</span>, <span class="hljs-func
 <span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
 <span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, ipcRenderer);
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket
     .request(<span class="hljs-string">'ping'</span>)
@@ -152,9 +152,9 @@ socket
 <span class="hljs-keyword">const</span> read = util.promisify(fs.read);
 <span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, <span class="hljs-keyword">new</span> Transport(ipcMain, win));
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket.onRequest(<span class="hljs-string">'file'</span>, <span class="hljs-keyword">async</span> (req: InboundRequest) =&gt; {
     <span class="hljs-keyword">return</span> read(req.data);
@@ -164,9 +164,9 @@ socket.onRequest(<span class="hljs-string">'file'</span>, <span class="hljs-keyw
 <span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
 <span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-string">'main-win'</span>, ipcRenderer);
+<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
 
-socket.open();
+socket.open(<span class="hljs-string">'main-win'</span>);
 
 socket
     .request(<span class="hljs-string">'file'</span>, <span class="hljs-string">'package.json'</span>)
@@ -193,6 +193,9 @@ socket
 						<a href="modules/_index_.html">"index"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="modules/_observable_.html">"observable"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="modules/_outbound_request_.html">"outbound-<wbr>request"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -203,12 +206,6 @@ socket
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_core_disposable_.html">"core/disposable"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_core_observable_.html">"core/observable"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_errors_connection_.html">"errors/connection"</a>
