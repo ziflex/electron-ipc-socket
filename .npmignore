@@ -1,7 +1,4 @@
-**/bower_components
-**/dist
 **/node
-**/node_modules
 **/.tmp
 **/coverage
 target/
@@ -23,7 +20,15 @@ classes/
 *.tern-project
 **/.DS_Store
 dump.rdb
+
+.github/
+docs
+**/node_modules
 src
 test
-docs
-.github/
+.gitignore
+.huskyrc.json
+.prettierrc.yaml
+.tsconfig.json
+.tslint.json
+
