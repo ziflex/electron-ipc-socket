@@ -1,3 +1,7 @@
+## 3.0.0
+### Changed
+- Updated dependencies
+
 ## 2.1.1
 ### Changed
 - Updated dependencies
