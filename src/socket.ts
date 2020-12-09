@@ -1,8 +1,7 @@
 import { Disposable, free, protect } from 'disposable-class';
 import isError from 'is-error';
 import isPromise from 'is-promise';
-import NanoEvents from 'nanoevents';
-import unbindAll from 'nanoevents/unbind-all';
+import { createNanoEvents, Emitter } from 'nanoevents';
 import { Interval } from 'pinterval';
 import { ConnectionLostError } from './errors/connection';
 import { UnhandledExceptionError } from './errors/exception';
@@ -23,8 +22,15 @@ const EVENTS = 'events';
 const BUS_EVENTS = Math.random().toString();
 const BUS_REQUESTS = Math.random().toString();
 
+function unbindAll(resource: Emitter<any>): void {
+    const emitter = resource;
+    emitter.events = {};
+}
+
 export type RequestHandler<T = any> = (req: InboundRequest) => T;
+
 export type AsyncRequestHandler<T = any> = (req: InboundRequest) => Promise<T>;
+
 export type EventHandler<T = any> = (evt: Event<T>) => void;
 
 export interface Settings {
@@ -37,14 +43,16 @@ export interface Settings {
  */
 export class Socket extends Disposable {
     private __isOpen: boolean;
+
     private __channel?: string;
+
     private __requestTimeout: number;
 
     @free()
     private __transport: Transport;
 
     @free({ call: unbindAll })
-    private __bus: NanoEvents<any>;
+    private __bus: Emitter<any>;
 
     @free({ call: 'stop', check: 'isRunning' })
     private __interval: Interval;
@@ -56,7 +64,7 @@ export class Socket extends Disposable {
     private __subscriptions?: Subscription[];
 
     constructor(
-        transport: Transport | TransportInput & TransportOutput,
+        transport: Transport | (TransportInput & TransportOutput),
         settings: Settings = {},
     ) {
         super();
@@ -77,7 +85,7 @@ export class Socket extends Disposable {
             func: this.__cleanup.bind(this),
             time: settings.cleanup || 1000 * 60,
         });
-        this.__bus = new NanoEvents();
+        this.__bus = createNanoEvents();
     }
 
     /**
@@ -145,13 +153,13 @@ export class Socket extends Disposable {
         this.__interval.stop();
 
         if (this.__subscriptions != null) {
-            this.__subscriptions.forEach(i => i());
+            this.__subscriptions.forEach((i) => i());
         }
 
         const pendingRequests = this.__pendingRequests;
 
         if (pendingRequests != null) {
-            Object.keys(pendingRequests).forEach(id => {
+            Object.keys(pendingRequests).forEach((id) => {
                 const req = pendingRequests[id];
                 req.reject(new ConnectionLostError());
             });
@@ -219,7 +227,7 @@ export class Socket extends Disposable {
     public onEvent(
         name: string,
         handler: EventHandler,
-        once: boolean = false,
+        once = false,
     ): Subscription {
         return this.__subscribe(`${BUS_EVENTS}/${name}`, handler, once);
     }
@@ -233,7 +241,7 @@ export class Socket extends Disposable {
     public onRequest(
         path: string,
         handler: RequestHandler | AsyncRequestHandler,
-        once: boolean = false,
+        once = false,
     ): Subscription {
         return this.__subscribe(
             `${BUS_REQUESTS}/${path}`,
@@ -247,10 +255,7 @@ export class Socket extends Disposable {
      * @param handler Error handler.
      * @param once Value indicating whether to handle any errors only once.
      */
-    public onError(
-        handler: EventHandler<Error>,
-        once: boolean = false,
-    ): Subscription {
+    public onError(handler: EventHandler<Error>, once = false): Subscription {
         return this.__subscribe('error', handler, once);
     }
 
@@ -273,7 +278,7 @@ export class Socket extends Disposable {
         });
 
         hanging.forEach((request: OutboundRequest) => {
-            const id = request.id;
+            const { id } = request;
             request.reject(new TimeoutError());
 
             delete pendingRequests[id];
@@ -340,17 +345,21 @@ export class Socket extends Disposable {
 
             if (!isPromise(out)) {
                 if (!isError(out)) {
-                    return this.__sendResponse(req.path, id, undefined, out);
+                    this.__sendResponse(req.path, id, undefined, out);
+
+                    return;
                 }
 
-                return this.__sendResponse(req.path, id, out);
+                this.__sendResponse(req.path, id, out);
+
+                return;
             }
 
             (out as Promise<any>)
-                .then(data =>
-                    this.__sendResponse(req.path, id, undefined, data),
+                .then((result: any) =>
+                    this.__sendResponse(req.path, id, undefined, result),
                 )
-                .catch(reason => this.__sendResponse(req.path, id, reason));
+                .catch((reason) => this.__sendResponse(req.path, id, reason));
         } catch (e) {
             this.__sendResponse(req.path, id, new UnhandledExceptionError(e));
         }

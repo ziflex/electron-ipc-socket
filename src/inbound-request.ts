@@ -3,11 +3,12 @@ import { InvalidTypeError } from './errors/invalid-type';
 /*
  * Represents incoming request from another process
  */
-export class InboundRequest {
+export class InboundRequest<T = any> {
     private __path: string;
-    private __data: any;
 
-    constructor(path: string, data: any) {
+    private __data: T;
+
+    constructor(path: string, data: T) {
         if (typeof path !== 'string') {
             throw new InvalidTypeError('request path', String.name, path);
         }
@@ -26,7 +27,7 @@ export class InboundRequest {
     /*
      * Returns request payload
      */
-    public get data(): any {
+    public get data(): T {
         return this.__data;
     }
 }
