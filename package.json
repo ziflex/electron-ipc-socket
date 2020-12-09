@@ -1,6 +1,6 @@
 {
     "name": "electron-ipc-socket",
-    "version": "2.1.1",
+    "version": "3.0.0",
     "description": "Response-request abstraction on top of Electron IPC system.",
     "main": "lib/index.js",
     "scripts": {
