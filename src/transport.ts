@@ -1,10 +1,12 @@
 import { Disposable, protect } from 'disposable-class';
-import nanoid from 'nanoid';
+import { nanoid } from 'nanoid';
+import { DisposedError } from './errors/disposed';
 import { RequiredError } from './errors/required';
 import { InvalidInputError, InvalidOutputError } from './errors/transport';
 import { Subscriber, Subscription } from './observable';
 import { requires } from './utils/assertions';
 
+export type TransportInputListener = (...args: any[]) => void;
 export interface TransportInput {
     on(event: string | symbol, listener: TransportInputListener): this;
     once(event: string | symbol, listener: TransportInputListener): this;
@@ -15,8 +17,6 @@ export interface TransportInput {
     removeAllListeners(event?: string | symbol): this;
 }
 
-export type TransportInputListener = (...args: any[]) => void;
-
 export interface TransportOutput {
     send(channel: string | symbol, ...args: any[]): void;
 }
@@ -26,8 +26,10 @@ export interface TransportOutput {
  */
 export class Transport extends Disposable {
     private __input: TransportInput;
+
     private __output: TransportOutput;
-    private __listeners: {
+
+    private __listeners?: {
         [id: string]: {
             channel: string | symbol;
             fn: TransportInputListener;
@@ -35,7 +37,7 @@ export class Transport extends Disposable {
     };
 
     constructor(
-        input: TransportInput | TransportInput & TransportOutput,
+        input: TransportInput | (TransportInput & TransportOutput),
         output?: TransportOutput,
     ) {
         super();
@@ -76,11 +78,13 @@ export class Transport extends Disposable {
     public dispose(): void {
         super.dispose();
 
-        Object.keys(this.__listeners).forEach((id: string) => {
-            this.__unsubscribe(id);
-        });
+        if (this.__listeners) {
+            Object.keys(this.__listeners).forEach((id: string) => {
+                this.__unsubscribe(id);
+            });
 
-        delete this.__listeners;
+            delete this.__listeners;
+        }
     }
 
     /*
@@ -101,6 +105,10 @@ export class Transport extends Disposable {
         requires('channel', channel);
         requires('subscriber', subscriber);
 
+        if (!this.__listeners) {
+            throw new DisposedError('Transport');
+        }
+
         const listener = (_: any, ...args: any[]) => {
             subscriber(args);
         };
@@ -118,6 +126,10 @@ export class Transport extends Disposable {
     }
 
     private __unsubscribe(id: string): void {
+        if (!this.__listeners) {
+            return;
+        }
+
         const pair = this.__listeners[id];
 
         if (pair != null) {

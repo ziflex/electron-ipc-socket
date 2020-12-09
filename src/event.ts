@@ -1,5 +1,6 @@
 export class Event<T = any> {
     private __name: string;
+
     private __data?: T;
 
     constructor(name: string, data?: T) {

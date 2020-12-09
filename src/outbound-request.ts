@@ -1,14 +1,18 @@
 import { Disposable } from 'disposable-class';
-import nanoid from 'nanoid';
+import { nanoid } from 'nanoid';
 import { InvalidTypeError } from './errors/invalid-type';
 
-export type OutboundRequestResolveCallback = (data?: any) => void;
+export type OutboundRequestResolveCallback<T = any> = (data?: T) => void;
+
 export type OutboundRequestRejectCallback = (reason: Error | string) => void;
 
-export class OutboundRequest extends Disposable {
+export class OutboundRequest<T = any> extends Disposable {
     private __id: string;
+
     private __timestamp: number;
-    private __resolve: OutboundRequestResolveCallback;
+
+    private __resolve: OutboundRequestResolveCallback<T>;
+
     private __reject: OutboundRequestRejectCallback;
 
     constructor(
@@ -47,7 +51,7 @@ export class OutboundRequest extends Disposable {
         return this.__timestamp;
     }
 
-    public resolve(data?: any): void {
+    public resolve(data?: T): void {
         super.dispose();
 
         this.__resolve(data);
