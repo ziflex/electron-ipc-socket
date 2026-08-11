@@ -1,0 +1,21 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "src/index.ts",
+        "src/main.ts",
+        "src/preload.ts",
+        "src/renderer.ts"
+    ],
+    "entryPointStrategy": "expand",
+    "excludeInternal": true,
+    "includeVersion": true,
+    "intentionallyNotExported": [
+        "EventArguments",
+        "EventMap",
+        "InputOf",
+        "InvokeArguments",
+        "OutputOf",
+        "RequestMap"
+    ],
+    "out": "docs"
+}

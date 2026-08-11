@@ -1,126 +1,221 @@
 # electron-ipc-socket
 
-> Event based communication
-
-Response-request abstraction on top of Electron IPC system.
+Typed, bidirectional RPC and events over a dedicated Electron `MessagePort`.
 
 [![npm version](https://badge.fury.io/js/electron-ipc-socket.svg)](https://www.npmjs.com/package/electron-ipc-socket)
-[![Actions Status](https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg)](https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg)
+[![Node CI](https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml/badge.svg)](https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml)
+
+Version 4 is an ESM-only redesign for Node.js 22.12 or newer and Electron 41, 42, or 43. It replaces the v3 `Socket` and `Transport` API with secure sessions built on `MessageChannelMain`.
 
 ```sh
-    npm install --save electron-ipc-socket
+npm install electron-ipc-socket
 ```
 
-## Motivation
+## Define a contract
 
-Events are good, but sometimes you want something more than just 'emit and forget'.
-Current package provides an abstraction on top of Electron IPC system that allows you to make 'request-response' communication.
+A contract describes what each side receives. `main.requests` and `main.events` are handled by the main process; `renderer.requests` and `renderer.events` are handled by the renderer.
 
-## Usage
+```ts
+// contract.ts
+import type { Procedure } from 'electron-ipc-socket';
 
-### Events
+export type AppContract = {
+    main: {
+        requests: {
+            readPreferences: Procedure<void, { theme: 'light' | 'dark' }>;
+            savePreferences: Procedure<{ theme: 'light' | 'dark' }, void>;
+        };
+        events: {
+            rendererReady: void;
+        };
+    };
+    renderer: {
+        requests: {
+            confirm: Procedure<{ message: string }, boolean>;
+        };
+        events: {
+            preferencesChanged: { theme: 'light' | 'dark' };
+        };
+    };
+};
+```
 
-```typescript
-// main-process.js
+The contract exists only at compile time. IPC input is untrusted data: handlers must perform runtime validation before using a payload. Payloads and results must also be supported by the structured clone algorithm; functions, promises, symbols, and Electron objects cannot be sent.
 
-import { ipcMain, BrowserWindow } from 'electron';
-import { Socket, Transport, Event, InboundRequest } from 'electron-ipc-socket';
-import fs from 'fs';
+## Main process
 
-const win = new BrowserWindow();
+Create one session for each `(WebContents, channel)` pair. Authorization is mandatory and synchronous. The library also verifies that the handshake came from that exact live `WebContents`, its current main frame, and the URL and origin observed during authorization.
 
-const socket = new Socket(new Transport(ipcMain, win));
+```ts
+// main.ts
+import { BrowserWindow } from 'electron';
+import { createMainSession } from 'electron-ipc-socket/main';
+import type { AppContract } from './contract.js';
 
-socket.open('main-win');
+const window = new BrowserWindow({
+    webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        preload: '/absolute/path/to/preload.cjs',
+        sandbox: true,
+    },
+});
 
-socket.onEvent('ready', (evt: Event) => {
-    console.log('Renderer process is ready');
+const session = createMainSession<AppContract>({
+    channel: 'application',
+    webContents: window.webContents,
+    authorize: ({ origin, url }) =>
+        origin === 'app://local' && url === 'app://local/index.html',
+});
+
+session.handle('readPreferences', () => ({ theme: 'dark' }));
+session.handle('savePreferences', (payload, context) => {
+    // Validate payload before writing it.
+    if (payload?.theme !== 'light' && payload?.theme !== 'dark') {
+        throw new TypeError('Invalid theme');
+    }
+
+    context.signal.throwIfAborted();
+});
+
+session.on('rendererReady', () => {
+    session.send('preferencesChanged', { theme: 'dark' });
+});
+
+await session.ready;
+const accepted = await session.invoke('confirm', {
+    message: 'Continue?',
 });
 ```
 
-```typescript
-// renderer-process.js
+Handlers registered on a main session survive renderer reloads. A disconnect rejects pending calls and aborts active handler contexts; a subsequent authorized handshake reconnects the same session. Events sent while disconnected throw immediately and are not queued or replayed.
 
-import { ipcRenderer } from 'electron';
-import { Socket } from 'electron-ipc-socket';
+## Preload bridge
 
-const socket = new Socket(ipcRenderer);
+The preload owns the handshake. It exposes only a small bridge for the dedicated port and never exposes `ipcRenderer`.
 
-socket.open('main-win');
+```ts
+// preload.ts
+import { exposeBridge } from 'electron-ipc-socket/preload';
 
-socket.send('ready');
-```
-
-### Request-response
-
-```typescript
-// main-process.js
-
-import { ipcMain, BrowserWindow } from 'electron';
-import { Socket, Transport, Event, InboundRequest } from 'electron-ipc-socket';
-import fs from 'fs';
-
-const win = new BrowserWindow();
-
-const socket = new Socket(new Transport(ipcMain, win));
-
-socket.open('main-win');
-
-socket.onRequest('ping', (req: InboundRequest) => {
-    return 'pong';
+exposeBridge({
+    channel: 'application',
+    key: 'applicationIpc',
 });
 ```
 
-```typescript
-// renderer-process.js
+This package publishes ESM only, but sandboxed Electron preloads cannot load ESM directly. Bundle the preload to CommonJS and leave Electron external:
 
-import { ipcRenderer } from 'electron';
-import { Socket } from 'electron-ipc-socket';
-
-const socket = new Socket(ipcRenderer);
-
-socket.open('main-win');
-
-socket
-    .request('ping')
-    .then(content => console.log(content))
-    .catch(err => console.error(err));
+```sh
+esbuild src/preload.ts \
+    --bundle \
+    --platform=node \
+    --format=cjs \
+    --external:electron \
+    --outfile=dist/preload.cjs
 ```
 
-##### Async request handler
+Point `webPreferences.preload` at the resulting absolute `preload.cjs` path. Keep `sandbox: true`, `contextIsolation: true`, and `nodeIntegration: false`.
 
-```typescript
-// main-process.js
+## Renderer
 
-import { ipcMain, BrowserWindow } from 'electron';
-import { Socket, Transport, Event, InboundRequest } from 'electron-ipc-socket';
-import fs from 'fs';
-import util from 'util';
+The renderer wrapper owns RPC handlers, `AbortSignal` objects, and reconstructed errors in the renderer world rather than in preload.
 
-const read = util.promisify(fs.read);
-const win = new BrowserWindow();
+```ts
+// renderer.ts
+import type { PreloadBridge } from 'electron-ipc-socket';
+import { RemoteError } from 'electron-ipc-socket';
+import { createRendererSession } from 'electron-ipc-socket/renderer';
+import type { AppContract } from './contract.js';
 
-const socket = new Socket(new Transport(ipcMain, win));
+declare global {
+    interface Window {
+        applicationIpc: PreloadBridge;
+    }
+}
 
-socket.open('main-win');
+const session = createRendererSession<AppContract>(window.applicationIpc);
 
-socket.onRequest('file', async (req: InboundRequest) => {
-    return read(req.data);
+session.handle('confirm', ({ message }) => window.confirm(message));
+await session.ready;
+session.send('rendererReady');
+
+try {
+    const preferences = await session.invoke('readPreferences');
+    console.log(preferences.theme);
+} catch (error) {
+    if (error instanceof RemoteError) {
+        console.error(error.remoteName, error.code, error.message);
+    }
+}
+```
+
+## Session API
+
+Both main and renderer sessions provide the same directional API:
+
+| Member                              | Purpose                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `ready`                             | Promise for the current or next connection.                                           |
+| `isConnected`                       | Whether a dedicated port is currently attached.                                       |
+| `invoke(route, payload?, options?)` | Call a request handled by the other side.                                             |
+| `handle(route, handler)`            | Register one local request handler; returns an unsubscribe function.                  |
+| `send(event, payload?)`             | Send a one-way event to the other side.                                               |
+| `on(event, listener)`               | Subscribe to a local event; returns an unsubscribe function.                          |
+| `once(event, listener)`             | Subscribe for one event; returns an unsubscribe function.                             |
+| `onStateChange(listener)`           | Observe connection state; immediately receives the current state.                     |
+| `onError(listener)`                 | Observe malformed messages and transport errors.                                      |
+| `dispose()`                         | Close the session and deterministically clear handlers, calls, timers, and listeners. |
+
+The default invocation timeout is 60 seconds. Override it for one call, disable it with `false`, and/or attach a cancellation signal:
+
+```ts
+const controller = new AbortController();
+
+const result = session.invoke('readPreferences', undefined, {
+    signal: controller.signal,
+    timeout: 5_000,
 });
+
+controller.abort();
+await result;
 ```
 
-```typescript
-// renderer-process.js
+Cancellation aborts the remote handler's `context.signal`. Late replies are ignored, and every timeout and signal listener is removed when a call settles.
 
-import { ipcRenderer } from 'electron';
-import { Socket } from 'electron-ipc-socket';
+Handlers may throw `RpcError` to expose a stable error code:
 
-const socket = new Socket(ipcRenderer);
+```ts
+import { RpcError } from 'electron-ipc-socket';
 
-socket.open('main-win');
-
-socket
-    .request('file', 'package.json')
-    .then(content => console.log(content))
-    .catch(err => console.error(err));
+throw new RpcError('ERR_NOT_ALLOWED', 'This operation is not allowed');
 ```
+
+Callers receive `RemoteError` containing `remoteName`, `message`, and `code`. Remote stack traces are never transmitted. Other thrown values are reduced to a safe name and message.
+
+## Migrate from v3
+
+Version 4 intentionally has no v3 compatibility entry point.
+
+| v3                                    | v4                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `new Socket(new Transport(...))`      | `createMainSession`, bundled `exposeBridge`, and `createRendererSession`                          |
+| `socket.open(channel)`                | Pass the same `channel` to `createMainSession` and `exposeBridge`; await `session.ready`          |
+| `socket.request(name, data)`          | `session.invoke(name, data)`                                                                      |
+| `socket.onRequest(name, handler)`     | `session.handle(name, handler)`; payload and cancellation context are separate arguments          |
+| `socket.send(name, data)`             | `session.send(name, data)`                                                                        |
+| `socket.onEvent(name, handler)`       | `session.on(name, handler)` or `session.once(name, handler)`                                      |
+| `Settings.timeout`                    | `defaultTimeout` on session creation or `timeout` per invocation                                  |
+| `Settings.cleanup`                    | Removed; v4 cleans each timer and listener deterministically and has no polling interval          |
+| `socket.close()` / `socket.dispose()` | `session.dispose()`; main sessions reconnect automatically across renderer reloads until disposed |
+
+Consumers that cannot migrate must remain on v3.
+
+## Compatibility
+
+- Node.js `>=22.12.0`
+- Electron `>=41 <44`
+- ESM application and renderer code
+- Bundled CommonJS sandbox preload
+
+The release test matrix covers Electron 41.10.5, 42.9.0, and 43.4.0. Delivery is ordered and at most once while connected; there is no persistence or event replay.

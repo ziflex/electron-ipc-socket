@@ -1,16 +1,69 @@
 {
     "name": "electron-ipc-socket",
-    "version": "3.0.0",
-    "description": "Response-request abstraction on top of Electron IPC system.",
-    "main": "lib/index.js",
+    "version": "4.0.0",
+    "description": "Typed bidirectional MessagePort RPC sessions for Electron.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./main": {
+            "types": "./dist/main.d.ts",
+            "import": "./dist/main.js"
+        },
+        "./preload": {
+            "types": "./dist/preload.d.ts",
+            "import": "./dist/preload.js"
+        },
+        "./renderer": {
+            "types": "./dist/renderer.d.ts",
+            "import": "./dist/renderer.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
+    "sideEffects": false,
     "scripts": {
-        "gh-pages": "git subtree push --prefix docs origin gh-pages",
-        "clean": "rimraf lib",
-        "build": "cross-env NODE_ENV=production npm run clean && tsc -b tsconfig.json",
-        "test": "cross-env NODE_ENV=test mocha",
-        "doc": "rimraf docs && typedoc --excludeProtected --excludePrivate --excludeNotExported --out docs && touch docs/.nojekyll",
-        "fmt": "pretty-quick --pattern src/**/*.ts",
-        "prepublish": "npm run test && npm run build"
+        "build": "npm run clean && tsc -p tsconfig.build.json",
+        "check": "npm run format && npm run typecheck && npm run lint && npm run test && npm run docs && npm run package:smoke",
+        "clean": "node scripts/clean.mjs",
+        "docs": "typedoc",
+        "format": "prettier --check .",
+        "format:write": "prettier --write .",
+        "lint": "eslint .",
+        "package:smoke": "npm run build && node scripts/package-smoke.mjs",
+        "prepublishOnly": "npm run check",
+        "test": "npm run test:unit && npm run test:types",
+        "test:electron": "npm run build && tsc -p test/electron/tsconfig.json && node scripts/electron-fixture.mjs",
+        "test:types": "tsc -p test/types/tsconfig.json",
+        "test:unit": "node --import tsx --test test/unit/endpoint.test.ts",
+        "typecheck": "tsc -p tsconfig.json"
+    },
+    "engines": {
+        "node": ">=22.12.0"
+    },
+    "peerDependencies": {
+        "electron": ">=41 <44"
+    },
+    "devDependencies": {
+        "@eslint/js": "10.0.1",
+        "@types/node": "24.13.3",
+        "electron": "43.4.0",
+        "esbuild": "0.28.2",
+        "eslint": "10.8.1",
+        "prettier": "3.9.6",
+        "tsx": "4.23.12",
+        "typedoc": "0.28.20",
+        "typescript": "6.0.3",
+        "typescript-eslint": "8.67.0"
     },
     "repository": {
         "type": "git",
@@ -18,53 +71,15 @@
     },
     "keywords": [
         "electron",
-        "socket",
+        "messageport",
         "ipc",
-        "communication"
+        "rpc",
+        "typescript"
     ],
     "author": "Tim Voronov <ziflex@gmail.com>",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/ziflex/electron-ipc-socket/issues"
     },
-    "homepage": "https://github.com/ziflex/electron-ipc-socket#readme",
-    "dependencies": {
-        "disposable-class": "^1.0.0",
-        "is-error": "^2.2.2",
-        "is-promise": "^4.0.0",
-        "nanoevents": "^5.1.10",
-        "nanoid": "^3.1.20",
-        "pinterval": "^3.4.0"
-    },
-    "devDependencies": {
-        "@types/chai": "^4.2.14",
-        "@types/is-promise": "^2.1.0",
-        "@types/jsdom": "^16.2.5",
-        "@types/mocha": "^8.2.0",
-        "@types/nanoevents": "^1.0.0",
-        "@types/nanoid": "^2.1.0",
-        "@types/node": "^14.14.11",
-        "@types/sinon": "^9.0.9",
-        "@typescript-eslint/eslint-plugin": "^4.9.1",
-        "@typescript-eslint/parser": "^4.9.1",
-        "chai": "^4.2.0",
-        "cross-env": "^7.0.3",
-        "eslint": "^7.13.0",
-        "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-config-prettier": "^6.15.0",
-        "eslint-plugin-import": "^2.22.1",
-        "eslint-plugin-mocha": "^8.0.0",
-        "eslint-plugin-prettier": "^3.1.4",
-        "husky": "^4.3.5",
-        "jsdom": "^16.4.0",
-        "mocha": "^8.2.1",
-        "prettier": "^2.2.1",
-        "pretty-quick": "^3.1.0",
-        "rimraf": "^3.0.2",
-        "sinon": "^9.2.1",
-        "source-map-support": "^0.5.19",
-        "ts-node": "^9.1.1",
-        "typedoc": "^0.19.2",
-        "typescript": "^4.1.2"
-    }
+    "homepage": "https://github.com/ziflex/electron-ipc-socket#readme"
 }
