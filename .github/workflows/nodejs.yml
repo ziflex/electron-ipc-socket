@@ -49,4 +49,9 @@ jobs:
               run: >-
                   npm install --no-save --package-lock=false
                   electron@${{ matrix.electron }}
+            - name: Configure Electron sandbox
+              run: |
+                  sudo chown root:root node_modules/electron/dist/chrome-sandbox
+                  sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+                  test "$(stat --format='%U:%G %a' node_modules/electron/dist/chrome-sandbox)" = "root:root 4755"
             - run: xvfb-run --auto-servernum npm run test:electron
