@@ -5,6 +5,8 @@ import { delimiter, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
+import { build } from 'esbuild';
+
 function run(command, args, options = {}) {
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, {
@@ -168,6 +170,18 @@ try {
         PATH: `${join(rootPath, 'node_modules', '.bin')}${delimiter}${process.env.PATH ?? ''}`,
     };
     await run(process.execPath, [join(temporary, 'consumer.mjs')], {
+        cwd: temporary,
+        env: commandEnvironment,
+    });
+    await build({
+        bundle: true,
+        entryPoints: [join(temporary, 'consumer.mjs')],
+        format: 'esm',
+        outfile: join(temporary, 'consumer-bundled.mjs'),
+        platform: 'node',
+        target: 'node22',
+    });
+    await run(process.execPath, [join(temporary, 'consumer-bundled.mjs')], {
         cwd: temporary,
         env: commandEnvironment,
     });

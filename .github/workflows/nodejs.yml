@@ -49,6 +49,8 @@ jobs:
               run: >-
                   npm install --no-save --package-lock=false
                   electron@${{ matrix.electron }}
+            - name: Materialize Electron binary
+              run: node -e "require('electron')"
             - name: Configure Electron sandbox
               run: |
                   sudo chown root:root node_modules/electron/dist/chrome-sandbox

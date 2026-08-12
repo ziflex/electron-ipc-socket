@@ -1,6 +1,9 @@
 import type { StandardSchemaV1Issue } from './validation.js';
 
 const ERROR_BRANDS = Symbol.for('electron-ipc-socket.errors.v4');
+const ERROR_CLASS_BRAND = Symbol.for(
+    'electron-ipc-socket.error-class-brand.v4',
+);
 
 interface ErrorBrandState {
     readonly names: Set<string>;
@@ -29,6 +32,33 @@ function addErrorBrand(error: object, brand: string): void {
     });
 }
 
+function getErrorClassBrand(errorClass: { readonly name: string }): string {
+    const brandedClass = errorClass as { readonly name: string } & Record<
+        typeof ERROR_CLASS_BRAND,
+        unknown
+    >;
+    if (Object.hasOwn(brandedClass, ERROR_CLASS_BRAND)) {
+        const brand = brandedClass[ERROR_CLASS_BRAND];
+        if (typeof brand === 'string') {
+            return brand;
+        }
+    }
+
+    return errorClass.name;
+}
+
+function setErrorClassBrand(
+    errorClass: { readonly name: string },
+    brand: string,
+): void {
+    Object.defineProperty(errorClass, ERROR_CLASS_BRAND, {
+        configurable: false,
+        enumerable: false,
+        value: brand,
+        writable: false,
+    });
+}
+
 export class IpcError extends Error {
     readonly code: string;
 
@@ -43,55 +73,62 @@ export class IpcError extends Error {
             state !== null &&
             'names' in state &&
             state.names instanceof Set &&
-            state.names.has(this.name)
+            state.names.has(getErrorClassBrand(this))
         );
     }
 
     constructor(code: string, message: string) {
         super(message);
-        this.name = new.target.name;
+        this.name = getErrorClassBrand(new.target);
         this.code = code;
-        addErrorBrand(this, IpcError.name);
-        addErrorBrand(this, new.target.name);
+        addErrorBrand(this, getErrorClassBrand(IpcError));
+        addErrorBrand(this, getErrorClassBrand(new.target));
     }
 }
+setErrorClassBrand(IpcError, 'IpcError');
 
 export class ConnectionError extends IpcError {
     constructor(message = 'IPC session is not connected') {
         super('ERR_IPC_CONNECTION', message);
     }
 }
+setErrorClassBrand(ConnectionError, 'ConnectionError');
 
 export class DisposedError extends IpcError {
     constructor() {
         super('ERR_IPC_DISPOSED', 'IPC session is disposed');
     }
 }
+setErrorClassBrand(DisposedError, 'DisposedError');
 
 export class TimeoutError extends IpcError {
     constructor(timeout: number) {
         super('ERR_IPC_TIMEOUT', `IPC invocation timed out after ${timeout}ms`);
     }
 }
+setErrorClassBrand(TimeoutError, 'TimeoutError');
 
 export class AbortError extends IpcError {
     constructor(message = 'IPC invocation was aborted') {
         super('ERR_IPC_ABORTED', message);
     }
 }
+setErrorClassBrand(AbortError, 'AbortError');
 
 export class ProtocolError extends IpcError {
     constructor(message: string) {
         super('ERR_IPC_PROTOCOL', message);
     }
 }
+setErrorClassBrand(ProtocolError, 'ProtocolError');
 
 export class RpcError extends IpcError {
     constructor(code: string, message: string) {
         super(code, message);
-        addErrorBrand(this, RpcError.name);
+        addErrorBrand(this, getErrorClassBrand(RpcError));
     }
 }
+setErrorClassBrand(RpcError, 'RpcError');
 
 export type ValidationTarget = 'event' | 'request' | 'result';
 
@@ -118,9 +155,10 @@ export class ValidationError extends RpcError {
         if (cause !== undefined) {
             this.cause = cause;
         }
-        addErrorBrand(this, ValidationError.name);
+        addErrorBrand(this, getErrorClassBrand(ValidationError));
     }
 }
+setErrorClassBrand(ValidationError, 'ValidationError');
 
 export class RemoteError extends IpcError {
     readonly remoteName: string;
@@ -131,3 +169,4 @@ export class RemoteError extends IpcError {
         this.remoteName = name;
     }
 }
+setErrorClassBrand(RemoteError, 'RemoteError');
