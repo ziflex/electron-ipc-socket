@@ -11,6 +11,7 @@ import {
     RemoteError,
     RpcError,
     TimeoutError,
+    ValidationError,
 } from '../../src/errors.js';
 import { PROTOCOL_VERSION } from '../../src/protocol.js';
 import {
@@ -19,6 +20,11 @@ import {
     type MessageListener,
     type TransportErrorListener,
 } from '../../src/transport.js';
+import type {
+    RuntimeSessionValidation,
+    StandardSchemaV1,
+    StandardSchemaV1Result,
+} from '../../src/validation.js';
 
 class FakeConnection implements Connection {
     readonly sent: unknown[] = [];
@@ -109,7 +115,13 @@ function attach(
     return connections;
 }
 
-function createPair(defaultTimeout: number | false = 1_000): Pair {
+function createPair(
+    defaultTimeout: number | false = 1_000,
+    validation: {
+        left?: RuntimeSessionValidation;
+        right?: RuntimeSessionValidation;
+    } = {},
+): Pair {
     const leftTransport = new ReconnectableTransport();
     const rightTransport = new ReconnectableTransport();
     const [leftConnection, rightConnection] = attach(
@@ -122,13 +134,73 @@ function createPair(defaultTimeout: number | false = 1_000): Pair {
         signal,
     });
     return {
-        left: new EndpointCore(leftTransport, createContext, defaultTimeout),
+        left: new EndpointCore(
+            leftTransport,
+            createContext,
+            defaultTimeout,
+            validation.left,
+        ),
         leftConnection,
         leftTransport,
-        right: new EndpointCore(rightTransport, createContext, defaultTimeout),
+        right: new EndpointCore(
+            rightTransport,
+            createContext,
+            defaultTimeout,
+            validation.right,
+        ),
         rightConnection,
         rightTransport,
     };
+}
+
+function schema<Output>(
+    validate: (
+        value: unknown,
+    ) =>
+        | StandardSchemaV1Result<Output>
+        | Promise<StandardSchemaV1Result<Output>>,
+): StandardSchemaV1<unknown, Output> {
+    return {
+        '~standard': {
+            validate,
+            vendor: 'test',
+            version: 1,
+        },
+    };
+}
+
+const passSchema = schema((value) => ({ value }));
+
+function runtimeValidation({
+    events = {},
+    inputs = {},
+    outputs = {},
+}: {
+    events?: Record<string, StandardSchemaV1>;
+    inputs?: Record<string, StandardSchemaV1>;
+    outputs?: Record<string, StandardSchemaV1>;
+}): RuntimeSessionValidation {
+    return {
+        localEvents: new Map(Object.entries(events)),
+        localRequests: new Map(
+            Object.entries(inputs).map(([route, input]) => [
+                route,
+                { input, output: passSchema },
+            ]),
+        ),
+        remoteRequestOutputs: new Map(Object.entries(outputs)),
+    };
+}
+
+function deferred<Value>(): {
+    promise: Promise<Value>;
+    resolve(value: Value): void;
+} {
+    let resolve!: (value: Value) => void;
+    const promise = new Promise<Value>((resolvePromise) => {
+        resolve = resolvePromise;
+    });
+    return { promise, resolve };
 }
 
 test('supports bidirectional synchronous, asynchronous, and void requests', async (t) => {
@@ -153,6 +225,281 @@ test('supports bidirectional synchronous, asynchronous, and void requests', asyn
     assert.equal(
         await pair.right.invoke('ping', undefined, undefined),
         undefined,
+    );
+});
+
+test('validates and transforms received request inputs and results', async (t) => {
+    const pair = createPair(1_000, {
+        left: runtimeValidation({
+            inputs: {
+                sum: schema((value) => {
+                    const input = value as { left?: unknown; right?: unknown };
+                    if (
+                        typeof input.left !== 'string' ||
+                        typeof input.right !== 'string'
+                    ) {
+                        return { issues: [{ message: 'Expected strings' }] };
+                    }
+
+                    return {
+                        value: {
+                            left: Number(input.left),
+                            right: Number(input.right),
+                        },
+                    };
+                }),
+            },
+        }),
+        right: runtimeValidation({
+            outputs: {
+                sum: schema(async (value) => ({
+                    value: Number(value) * 2,
+                })),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    pair.left.handle('sum', (payload) => {
+        const input = payload as { left: number; right: number };
+        return input.left + input.right;
+    });
+
+    assert.equal(
+        await pair.right.invoke('sum', { left: '2', right: '5' }, undefined),
+        14,
+    );
+});
+
+test('rejects invalid requests remotely without calling the handler', async (t) => {
+    const pair = createPair(1_000, {
+        left: runtimeValidation({
+            inputs: {
+                guarded: schema(() => ({
+                    issues: [
+                        { message: 'Rejected', path: ['secret', { key: 0 }] },
+                    ],
+                })),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    let handled = false;
+    const localErrors: Error[] = [];
+    pair.left.onError((error) => localErrors.push(error));
+    pair.left.handle('guarded', () => {
+        handled = true;
+    });
+
+    await assert.rejects(
+        pair.right.invoke('guarded', { secret: true }, undefined),
+        (error: unknown) =>
+            error instanceof RemoteError &&
+            error.code === 'ERR_IPC_VALIDATION' &&
+            error.remoteName === 'ValidationError' &&
+            !('issues' in error),
+    );
+    assert.equal(handled, false);
+    assert.equal(localErrors.length, 1);
+    assert.ok(localErrors[0] instanceof ValidationError);
+    assert.equal(
+        (localErrors[0] as ValidationError).issues[0]?.message,
+        'Rejected',
+    );
+});
+
+test('rejects invalid results locally and normalizes thrown validators', async (t) => {
+    const pair = createPair(1_000, {
+        right: runtimeValidation({
+            outputs: {
+                invalid: schema(() => ({
+                    issues: [{ message: 'Expected a number' }],
+                })),
+                throws: schema(() => {
+                    throw new Error('validator internals');
+                }),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    pair.left.handle('invalid', () => 'wrong');
+    pair.left.handle('throws', () => 'wrong');
+
+    await assert.rejects(
+        pair.right.invoke('invalid', undefined, undefined),
+        (error: unknown) =>
+            error instanceof ValidationError &&
+            error.target === 'result' &&
+            error.route === 'invalid' &&
+            error.issues[0]?.message === 'Expected a number',
+    );
+    await assert.rejects(
+        pair.right.invoke('throws', undefined, undefined),
+        (error: unknown) =>
+            error instanceof ValidationError &&
+            error.target === 'result' &&
+            error.issues.length === 0 &&
+            error.cause instanceof Error &&
+            error.cause.message === 'validator internals',
+    );
+});
+
+test('preserves event order and leaves once listeners after invalid events', async (t) => {
+    const pair = createPair(1_000, {
+        left: runtimeValidation({
+            events: {
+                tick: schema(async (value) => {
+                    const number = Number(value);
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, number === 1 ? 10 : 0),
+                    );
+                    return number < 0
+                        ? {
+                              issues: [
+                                  { message: 'Expected a positive number' },
+                              ],
+                          }
+                        : { value: number };
+                }),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    const events: number[] = [];
+    const once: number[] = [];
+    const errors: Error[] = [];
+    pair.left.on('tick', (value) => events.push(value as number));
+    pair.left.once('tick', (value) => once.push(value as number));
+    pair.left.onError((error) => errors.push(error));
+
+    pair.right.send('tick', -1);
+    pair.right.send('tick', 1);
+    pair.right.send('tick', 2);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    assert.deepEqual(events, [1, 2]);
+    assert.deepEqual(once, [1]);
+    assert.equal(errors.length, 1);
+    assert.ok(errors[0] instanceof ValidationError);
+});
+
+test('cancels request validation and ignores stale validated events', async (t) => {
+    const requestValidation = deferred<StandardSchemaV1Result<unknown>>();
+    const eventValidation = deferred<StandardSchemaV1Result<unknown>>();
+    const disposalValidation = deferred<StandardSchemaV1Result<unknown>>();
+    const pair = createPair(false, {
+        left: runtimeValidation({
+            events: {
+                delayed: schema((value) =>
+                    value === 'dispose'
+                        ? disposalValidation.promise
+                        : eventValidation.promise,
+                ),
+            },
+            inputs: {
+                delayed: schema(() => requestValidation.promise),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    let handled = false;
+    let delivered = false;
+    pair.left.handle('delayed', () => {
+        handled = true;
+    });
+    pair.left.on('delayed', () => {
+        delivered = true;
+    });
+
+    const controller = new AbortController();
+    const invocation = pair.right.invoke('delayed', undefined, {
+        signal: controller.signal,
+    });
+    pair.right.send('delayed', 'old');
+    await new Promise((resolve) => setImmediate(resolve));
+    controller.abort();
+    pair.leftConnection.close();
+    attach(pair.leftTransport, pair.rightTransport);
+    requestValidation.resolve({ value: undefined });
+    eventValidation.resolve({ value: 'old' });
+
+    await assert.rejects(invocation, AbortError);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(handled, false);
+    assert.equal(delivered, false);
+
+    pair.right.send('delayed', 'new');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(delivered, true);
+
+    delivered = false;
+    pair.right.send('delayed', 'dispose');
+    await new Promise((resolve) => setImmediate(resolve));
+    pair.left.dispose();
+    disposalValidation.resolve({ value: 'dispose' });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(delivered, false);
+});
+
+test('keeps timeout and route enforcement active during validation', async (t) => {
+    const resultValidation = deferred<StandardSchemaV1Result<unknown>>();
+    const pair = createPair(5, {
+        left: runtimeValidation({ inputs: { slow: passSchema } }),
+        right: runtimeValidation({
+            outputs: {
+                slow: schema(() => resultValidation.promise),
+            },
+        }),
+    });
+    t.after(() => {
+        pair.left.dispose();
+        pair.right.dispose();
+    });
+
+    pair.left.handle('slow', () => 'raw');
+    await assert.rejects(
+        pair.right.invoke('slow', undefined, undefined),
+        TimeoutError,
+    );
+    resultValidation.resolve({ value: 'late' });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    await assert.rejects(
+        pair.right.invoke('undeclared', undefined, undefined),
+        (error: unknown) =>
+            error instanceof ProtocolError &&
+            /not declared/.test(error.message),
+    );
+
+    const errors: Error[] = [];
+    pair.left.onError((error) => errors.push(error));
+    pair.right.send('undeclared', undefined);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.ok(
+        errors.some(
+            (error) =>
+                error instanceof ProtocolError &&
+                /Event route/.test(error.message),
+        ),
     );
 });
 

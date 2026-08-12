@@ -15,6 +15,40 @@ export interface IpcContract {
 
 export type AppContract = IpcContract;
 
+type IsAny<Value> = 0 extends 1 & Value ? true : false;
+
+type InvalidRouteKeys<Map extends object> = Exclude<keyof Map, string>;
+
+type InvalidRequestKeys<Map extends object> = {
+    [Route in keyof Map]: IsAny<Map[Route]> extends true
+        ? Route
+        : [Map[Route]] extends [Procedure<unknown, unknown>]
+          ? never
+          : Route;
+}[keyof Map];
+
+type InvalidEndpointKeys<Definition extends EndpointDefinition> =
+    | InvalidRouteKeys<Definition['requests']>
+    | InvalidRouteKeys<Definition['events']>
+    | InvalidRequestKeys<Definition['requests']>;
+
+/** Returns the contract when all route keys and request declarations are valid. */
+export type ValidContract<Contract extends IpcContract> = [
+    InvalidEndpointKeys<Contract['main']>,
+    InvalidEndpointKeys<Contract['renderer']>,
+] extends [never, never]
+    ? Contract
+    : never;
+
+/** @internal */
+export type ContractConstraint<Contract extends IpcContract> = [
+    Contract,
+] extends [ValidContract<Contract>]
+    ? unknown
+    : {
+          readonly __invalidIpcContract: never;
+      };
+
 export type Subscription = () => void;
 
 export interface InvokeOptions {

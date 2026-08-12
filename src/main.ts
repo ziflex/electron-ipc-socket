@@ -8,6 +8,7 @@ import {
 } from 'electron';
 
 import type {
+    ContractConstraint,
     EndpointSession,
     ErrorListener,
     EventListener,
@@ -17,6 +18,7 @@ import type {
     RequestHandler,
     StateListener,
     Subscription,
+    ValidContract,
 } from './contracts.js';
 import { ConnectionError, ProtocolError } from './errors.js';
 import { EndpointCore, type RuntimeRequestHandler } from './endpoint.js';
@@ -30,6 +32,10 @@ import {
     type Connection,
     type MessageListener,
 } from './transport.js';
+import {
+    createRuntimeSessionValidation,
+    type ContractValidation,
+} from './validation.js';
 
 export interface MainAuthorizationContext {
     readonly channel: string;
@@ -46,20 +52,47 @@ export interface MainRequestContext extends RequestContext {
     readonly webContents: WebContents;
 }
 
-export interface CreateMainSessionOptions {
+export interface CreateMainSessionOptions<
+    Contract extends IpcContract = IpcContract,
+> {
     authorize(context: MainAuthorizationContext): boolean;
     channel: string;
     defaultTimeout?: number | false;
+    validation?: ContractValidation<Contract>;
     webContents: WebContents;
 }
 
-export type MainSession<Contract extends IpcContract> = EndpointSession<
-    Contract['main'],
-    Contract['renderer'],
-    MainRequestContext
->;
+export type MainSession<Contract extends IpcContract> = [Contract] extends [
+    ValidContract<Contract>,
+]
+    ? EndpointSession<
+          Contract['main'],
+          Contract['renderer'],
+          MainRequestContext
+      >
+    : never;
 
-const activeChannels = new WeakMap<WebContents, Set<string>>();
+const ACTIVE_CHANNELS = Symbol.for(
+    'electron-ipc-socket.main-active-channels.v4',
+);
+const globalRegistry = globalThis as Record<PropertyKey, unknown>;
+const existingChannels = globalRegistry[ACTIVE_CHANNELS];
+if (existingChannels !== undefined && !(existingChannels instanceof WeakMap)) {
+    throw new TypeError('The global main-session registry is invalid');
+}
+const activeChannels =
+    existingChannels instanceof WeakMap
+        ? (existingChannels as WeakMap<WebContents, Set<string>>)
+        : new WeakMap<WebContents, Set<string>>();
+
+if (existingChannels === undefined) {
+    Object.defineProperty(globalRegistry, ACTIVE_CHANNELS, {
+        configurable: false,
+        enumerable: false,
+        value: activeChannels,
+        writable: false,
+    });
+}
 
 class MainPortConnection implements Connection {
     constructor(private readonly port: MessagePortMain) {}
@@ -132,6 +165,7 @@ class MainSessionImpl {
                 };
             },
             options.defaultTimeout,
+            createRuntimeSessionValidation(options.validation, 'main'),
         );
         this.handleConnect = (event, request) => {
             this.acceptConnection(event, request);
@@ -325,7 +359,7 @@ class MainSessionImpl {
 }
 
 export function createMainSession<Contract extends IpcContract>(
-    options: CreateMainSessionOptions,
+    options: CreateMainSessionOptions<Contract> & ContractConstraint<Contract>,
 ): MainSession<Contract> {
     if (typeof options?.authorize !== 'function') {
         throw new TypeError('authorize is required');

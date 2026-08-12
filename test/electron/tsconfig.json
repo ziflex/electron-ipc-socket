@@ -4,6 +4,6 @@
         "noEmit": true,
         "rootDir": "../.."
     },
-    "include": ["./preload.ts", "./renderer.ts"],
+    "include": ["./*.ts", "./*.cts"],
     "exclude": []
 }

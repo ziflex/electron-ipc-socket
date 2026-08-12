@@ -1,40 +1,8 @@
-import type { PreloadBridge, Procedure } from '../../dist/index.js';
-import { AbortError, RemoteError } from '../../dist/index.js';
-import { createRendererSession } from '../../dist/renderer.js';
+import type { PreloadBridge } from 'electron-ipc-socket';
+import { AbortError, RemoteError, ValidationError } from 'electron-ipc-socket';
+import { createRendererSession } from 'electron-ipc-socket/renderer';
 
-type FixtureContract = {
-    main: {
-        requests: {
-            'fixture:add': Procedure<{ left: number; right: number }, number>;
-            'fixture:cancel': Procedure<{ run: number }, void>;
-            'fixture:cancel-seen': Procedure<{ run: number }, boolean>;
-            'fixture:fail': Procedure<void, void>;
-            'fixture:ready': Procedure<{ run: number }, void>;
-            'fixture:report': Procedure<RendererReport, void>;
-        };
-        events: {
-            'fixture:renderer-event': { run: number };
-        };
-    };
-    renderer: {
-        requests: {
-            'fixture:cancel-renderer': Procedure<{ run: number }, void>;
-            'fixture:uppercase': Procedure<string, string>;
-        };
-        events: {
-            'fixture:main-event': { run: number };
-        };
-    };
-};
-
-interface RendererReport {
-    addResult: number;
-    cancellationObserved: boolean;
-    errorCode: string;
-    eventCount: number;
-    ok: boolean;
-    run: number;
-}
+import { type FixtureContract, validation } from './contract.js';
 
 declare global {
     interface Window {
@@ -62,12 +30,19 @@ const navigation = performance.getEntriesByType(
 const run = navigation.type === 'reload' ? 2 : 1;
 const session = createRendererSession<FixtureContract>(window.fixtureBridge, {
     defaultTimeout: 2_000,
+    validation,
 });
 let rendererCancellationObserved = false;
 let eventCount = 0;
+let invalidEventCount = 0;
+const validationErrors: ValidationError[] = [];
 let unsubscribeEvent: () => void = () => undefined;
 
 session.handle('fixture:uppercase', (value) => value.toUpperCase());
+session.handle(
+    'fixture:invalid-result',
+    () => 'invalid result' as unknown as number,
+);
 session.handle('fixture:cancel-renderer', (_payload, context) => {
     return new Promise<void>((resolve) => {
         context.signal.addEventListener(
@@ -86,6 +61,14 @@ unsubscribeEvent = session.on('fixture:main-event', (payload) => {
         unsubscribeEvent();
     }
 });
+session.on('fixture:invalid-event', () => {
+    invalidEventCount++;
+});
+session.onError((error) => {
+    if (error instanceof ValidationError) {
+        validationErrors.push(error);
+    }
+});
 
 async function runFixture(): Promise<void> {
     try {
@@ -96,6 +79,21 @@ async function runFixture(): Promise<void> {
             left: run,
             right: 40,
         });
+        const validatedValue = await session.invoke('fixture:validate', {
+            value: ' validated ',
+        });
+
+        let invalidRequestCode = '';
+        try {
+            await session.invoke('fixture:add', {
+                left: 'invalid' as unknown as number,
+                right: 40,
+            });
+        } catch (error) {
+            if (error instanceof RemoteError) {
+                invalidRequestCode = error.code;
+            }
+        }
 
         let errorCode = '';
         try {
@@ -136,13 +134,21 @@ async function runFixture(): Promise<void> {
             cancellationObserved,
             errorCode,
             eventCount,
+            invalidEventCount,
+            invalidRequestCode,
             ok:
                 addResult === run + 40 &&
                 cancellationObserved &&
                 errorCode === 'ERR_FIXTURE' &&
                 eventCount === 1 &&
-                rendererCancellationObserved,
+                invalidEventCount === 0 &&
+                invalidRequestCode === 'ERR_IPC_VALIDATION' &&
+                rendererCancellationObserved &&
+                validatedValue === 'validated' &&
+                validationErrors.length >= 1,
             run,
+            validatedValue,
+            validationErrorCount: validationErrors.length,
         });
     } catch (error) {
         await session.invoke('fixture:report', {
@@ -150,8 +156,12 @@ async function runFixture(): Promise<void> {
             cancellationObserved: false,
             errorCode: error instanceof Error ? error.message : String(error),
             eventCount,
+            invalidEventCount,
+            invalidRequestCode: '',
             ok: false,
             run,
+            validatedValue: '',
+            validationErrorCount: validationErrors.length,
         });
     }
 }

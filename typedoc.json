@@ -12,9 +12,12 @@
     "intentionallyNotExported": [
         "EventArguments",
         "EventMap",
+        "EndpointValidation",
         "InputOf",
+        "InvalidEndpointKeys",
         "InvokeArguments",
         "OutputOf",
+        "RendererSessionArguments",
         "RequestMap"
     ],
     "out": "docs"

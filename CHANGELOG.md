@@ -4,7 +4,7 @@
 
 - Replaced `Socket` and `Transport` with typed, bidirectional main and renderer sessions over `MessageChannelMain`.
 - Removed the v3 API and all legacy runtime dependencies.
-- Published ESM-only entry points for the package root, `main`, `preload`, and `renderer`.
+- Published conditional ESM and CommonJS entry points for the package root, `main`, `preload`, and `renderer`.
 - Raised the runtime requirement to Node.js 22.12 and Electron 41 through 43.
 
 ### Added
@@ -13,6 +13,7 @@
 - Mandatory synchronous main-frame authorization and an isolated preload bridge that never exposes `ipcRenderer`.
 - Invocation timeouts, `AbortSignal` cancellation propagation, safe remote errors, state subscriptions, and reload reconnection.
 - Unit, type-contract, real-Electron, and package-consumer fixtures.
+- Strict request-map contract checks and optional complete Standard Schema V1 validation for request inputs, results, and events.
 
 ### Security
 

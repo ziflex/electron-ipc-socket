@@ -14,6 +14,7 @@ import {
     ProtocolError,
     RpcError,
     TimeoutError,
+    ValidationError,
 } from './errors.js';
 import {
     assertName,
@@ -24,6 +25,11 @@ import {
     type WireMessage,
 } from './protocol.js';
 import type { SessionTransport } from './transport.js';
+import {
+    validateValue,
+    type RuntimeSessionValidation,
+    type StandardSchemaV1,
+} from './validation.js';
 
 export const DEFAULT_INVOCATION_TIMEOUT = 60_000;
 
@@ -34,8 +40,11 @@ export type RuntimeRequestHandler<Context extends RequestContext> = (
 
 interface PendingInvocation {
     abortListener?: () => void;
+    outputSchema?: StandardSchemaV1;
     reject: (reason: Error) => void;
+    resultReceived?: boolean;
     resolve: (value: unknown) => void;
+    route: string;
     signal?: AbortSignal;
     timer?: ReturnType<typeof setTimeout>;
 }
@@ -60,6 +69,8 @@ export class EndpointCore<Context extends RequestContext> {
     private readonly pendingInvocations = new Map<string, PendingInvocation>();
     private readonly stateListeners = new Set<StateListener>();
     private readonly transportSubscriptions: Subscription[];
+    private eventGeneration = 0;
+    private eventQueue = Promise.resolve();
     private readyDeferred: ReadyDeferred;
     private connected: boolean;
     private disposed = false;
@@ -73,6 +84,7 @@ export class EndpointCore<Context extends RequestContext> {
         ) => Context,
         private readonly defaultTimeout:
             number | false = DEFAULT_INVOCATION_TIMEOUT,
+        private readonly validation?: RuntimeSessionValidation,
     ) {
         this.validateTimeout(defaultTimeout);
         this.connected = transport.isConnected;
@@ -121,6 +133,15 @@ export class EndpointCore<Context extends RequestContext> {
             return Promise.reject(new AbortError());
         }
 
+        const outputSchema = this.validation?.remoteRequestOutputs.get(route);
+        if (this.validation && !outputSchema) {
+            return Promise.reject(
+                new ProtocolError(
+                    `Request route "${route}" is not declared in the validation contract`,
+                ),
+            );
+        }
+
         let timeout: number | false;
 
         try {
@@ -135,8 +156,10 @@ export class EndpointCore<Context extends RequestContext> {
 
         return new Promise<unknown>((resolve, reject) => {
             const pending: PendingInvocation = {
+                outputSchema,
                 reject,
                 resolve,
+                route,
                 signal: options?.signal,
             };
 
@@ -295,6 +318,8 @@ export class EndpointCore<Context extends RequestContext> {
         }
 
         this.disposed = true;
+        this.eventGeneration++;
+        this.eventQueue = Promise.resolve();
         const reason = new DisposedError();
         this.rejectPending(reason);
         this.abortHandlers(reason);
@@ -332,15 +357,7 @@ export class EndpointCore<Context extends RequestContext> {
                 this.receiveInvocation(message);
                 break;
             case 'result':
-                if (message.ok) {
-                    this.finishPending(message.id, 'resolve', message.payload);
-                } else {
-                    this.finishPending(
-                        message.id,
-                        'reject',
-                        deserializeError(message.error!),
-                    );
-                }
+                this.receiveResult(message);
                 break;
             case 'cancel':
                 this.activeHandlers
@@ -350,14 +367,73 @@ export class EndpointCore<Context extends RequestContext> {
                     );
                 break;
             case 'event':
-                this.receiveEvent(message.route, message.payload);
+                this.queueEvent(message.route, message.payload);
                 break;
         }
+    }
+
+    private receiveResult(
+        message: Extract<WireMessage, { kind: 'result' }>,
+    ): void {
+        const pending = this.pendingInvocations.get(message.id);
+        if (!pending || pending.resultReceived) {
+            return;
+        }
+
+        pending.resultReceived = true;
+        if (!message.ok) {
+            this.finishPending(
+                message.id,
+                'reject',
+                deserializeError(message.error!),
+            );
+            return;
+        }
+
+        if (!pending.outputSchema) {
+            this.finishPending(message.id, 'resolve', message.payload);
+            return;
+        }
+
+        void validateValue(
+            pending.outputSchema,
+            message.payload,
+            'result',
+            pending.route,
+        ).then(
+            (payload) => this.finishPending(message.id, 'resolve', payload),
+            (error: unknown) =>
+                this.finishPending(
+                    message.id,
+                    'reject',
+                    error instanceof Error
+                        ? error
+                        : new ProtocolError('Result validation failed'),
+                ),
+        );
     }
 
     private receiveInvocation(
         message: Extract<WireMessage, { kind: 'invoke' }>,
     ): void {
+        const requestValidation = this.validation?.localRequests.get(
+            message.route,
+        );
+        if (this.validation && !requestValidation) {
+            const error = new ProtocolError(
+                `Request route "${message.route}" is not declared in the validation contract`,
+            );
+            this.notifyError(error);
+            this.sendFailure(
+                message.id,
+                new RpcError(
+                    'ERR_IPC_ROUTE_NOT_FOUND',
+                    `No request route is declared for "${message.route}"`,
+                ),
+            );
+            return;
+        }
+
         const handler = this.handlers.get(message.route);
         if (!handler) {
             this.sendFailure(
@@ -397,7 +473,23 @@ export class EndpointCore<Context extends RequestContext> {
         }
 
         void Promise.resolve()
-            .then(() => handler(message.payload, context))
+            .then(() =>
+                requestValidation
+                    ? validateValue(
+                          requestValidation.input,
+                          message.payload,
+                          'request',
+                          message.route,
+                      )
+                    : message.payload,
+            )
+            .then((payload) => {
+                if (controller.signal.aborted || !this.connected) {
+                    return undefined;
+                }
+
+                return handler(payload, context);
+            })
             .then((payload) => {
                 if (!controller.signal.aborted && this.connected) {
                     this.transport.postMessage({
@@ -410,6 +502,9 @@ export class EndpointCore<Context extends RequestContext> {
                 }
             })
             .catch((error: unknown) => {
+                if (error instanceof ValidationError) {
+                    this.notifyError(error);
+                }
                 if (!controller.signal.aborted && this.connected) {
                     this.sendFailure(message.id, error);
                 }
@@ -419,6 +514,62 @@ export class EndpointCore<Context extends RequestContext> {
                     this.activeHandlers.delete(message.id);
                 }
             });
+    }
+
+    private queueEvent(route: string, payload: unknown): void {
+        if (!this.validation) {
+            this.receiveEvent(route, payload);
+            return;
+        }
+
+        const generation = this.eventGeneration;
+        this.eventQueue = this.eventQueue.then(async () => {
+            if (
+                this.disposed ||
+                !this.connected ||
+                generation !== this.eventGeneration
+            ) {
+                return;
+            }
+
+            const schema = this.validation?.localEvents.get(route);
+            if (!schema) {
+                this.notifyError(
+                    new ProtocolError(
+                        `Event route "${route}" is not declared in the validation contract`,
+                    ),
+                );
+                return;
+            }
+
+            try {
+                const validated = await validateValue(
+                    schema,
+                    payload,
+                    'event',
+                    route,
+                );
+                if (
+                    !this.disposed &&
+                    this.connected &&
+                    generation === this.eventGeneration
+                ) {
+                    this.receiveEvent(route, validated);
+                }
+            } catch (error) {
+                if (
+                    !this.disposed &&
+                    this.connected &&
+                    generation === this.eventGeneration
+                ) {
+                    this.notifyError(
+                        error instanceof Error
+                            ? error
+                            : new ProtocolError('Event validation failed'),
+                    );
+                }
+            }
+        });
     }
 
     private receiveEvent(route: string, payload: unknown): void {
@@ -526,6 +677,8 @@ export class EndpointCore<Context extends RequestContext> {
         if (connected) {
             this.readyDeferred.resolve();
         } else {
+            this.eventGeneration++;
+            this.eventQueue = Promise.resolve();
             const reason = new ConnectionError('IPC session disconnected');
             this.rejectPending(reason);
             this.abortHandlers(reason);

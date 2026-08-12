@@ -1,4 +1,5 @@
 import type {
+    ContractConstraint,
     EndpointSession,
     ErrorListener,
     EventListener,
@@ -8,6 +9,7 @@ import type {
     RequestHandler,
     StateListener,
     Subscription,
+    ValidContract,
 } from './contracts.js';
 import { ConnectionError } from './errors.js';
 import { EndpointCore, type RuntimeRequestHandler } from './endpoint.js';
@@ -22,16 +24,32 @@ import type {
     StateChangeListener,
     TransportErrorListener,
 } from './transport.js';
+import {
+    createRuntimeSessionValidation,
+    type ContractValidation,
+} from './validation.js';
 
-export interface CreateRendererSessionOptions {
+export interface CreateRendererSessionOptions<
+    Contract extends IpcContract = IpcContract,
+> {
     defaultTimeout?: number | false;
+    validation?: ContractValidation<Contract>;
 }
 
-export type RendererSession<Contract extends IpcContract> = EndpointSession<
-    Contract['renderer'],
-    Contract['main'],
-    RequestContext
->;
+export type RendererSession<Contract extends IpcContract> = [Contract] extends [
+    ValidContract<Contract>,
+]
+    ? EndpointSession<Contract['renderer'], Contract['main'], RequestContext>
+    : never;
+
+type RendererSessionArguments<Contract extends IpcContract> = [
+    Contract,
+] extends [ValidContract<Contract>]
+    ? [options?: CreateRendererSessionOptions<Contract>]
+    : [
+          options: CreateRendererSessionOptions<Contract> &
+              ContractConstraint<Contract>,
+      ];
 
 class BridgeTransport implements SessionTransport {
     private readonly errorListeners = new Set<TransportErrorListener>();
@@ -130,6 +148,7 @@ class RendererSessionImpl {
             new BridgeTransport(bridge),
             (id, route, signal) => ({ id, route, signal }),
             options.defaultTimeout,
+            createRuntimeSessionValidation(options.validation, 'renderer'),
         );
     }
 
@@ -186,7 +205,7 @@ class RendererSessionImpl {
 
 export function createRendererSession<Contract extends IpcContract>(
     bridge: PreloadBridge,
-    options: CreateRendererSessionOptions = {},
+    ...args: RendererSessionArguments<Contract>
 ): RendererSession<Contract> {
     if (
         !bridge ||
@@ -199,6 +218,6 @@ export function createRendererSession<Contract extends IpcContract>(
 
     return new RendererSessionImpl(
         bridge,
-        options,
+        args[0] ?? {},
     ) as unknown as RendererSession<Contract>;
 }

@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 import { app, BrowserWindow, protocol } from 'electron';
 
-import { AbortError, RpcError } from '../../dist/index.js';
-import { createMainSession } from '../../dist/main.js';
+import { AbortError, RpcError, ValidationError } from 'electron-ipc-socket';
+import { createMainSession } from 'electron-ipc-socket/main';
+
+import { validation } from './contract.ts';
 
 const fixtureDirectory = process.env.ELECTRON_IPC_SOCKET_FIXTURE_DIR;
 assert.ok(fixtureDirectory, 'fixture directory is required');
@@ -121,8 +124,28 @@ const session = createMainSession({
     },
     channel: 'fixture',
     defaultTimeout: 2_000,
+    validation,
     webContents: window.webContents,
 });
+
+const require = createRequire(join(process.cwd(), 'package.json'));
+const commonJsRoot = require('electron-ipc-socket');
+const commonJsMain = require('electron-ipc-socket/main');
+assert.ok(
+    new commonJsRoot.RpcError('ERR_CJS', 'commonjs') instanceof RpcError,
+    'public error identity must survive mixed module loading',
+);
+assert.throws(
+    () =>
+        commonJsMain.createMainSession({
+            authorize: () => true,
+            channel: 'fixture',
+            validation,
+            webContents: window.webContents,
+        }),
+    /already exists/,
+    'mixed module loading must share main-session channel ownership',
+);
 
 session.onError((error) => errors.push(error));
 session.onStateChange((state) => states.push(state.connected));
@@ -143,6 +166,7 @@ session.handle('fixture:cancel', ({ run }, context) => {
     });
 });
 session.handle('fixture:cancel-seen', ({ run }) => cancellationRuns.has(run));
+session.handle('fixture:validate', ({ value }) => value);
 session.handle('fixture:ready', ({ run }) => {
     assert.equal(run, expectedRun);
     let unsubscribe = () => undefined;
@@ -172,6 +196,15 @@ async function runMainChecks(run) {
 
     session.send('fixture:main-event', { run });
     session.send('fixture:main-event', { run });
+    session.send('fixture:invalid-event', { run: 'invalid' });
+
+    await assert.rejects(
+        session.invoke('fixture:invalid-result'),
+        (error) =>
+            error instanceof ValidationError &&
+            error.code === 'ERR_IPC_VALIDATION' &&
+            error.target === 'result',
+    );
 
     const controller = new AbortController();
     const invocation = session.invoke(
@@ -191,6 +224,10 @@ async function runMainChecks(run) {
     assert.equal(rendererReport.cancellationObserved, true);
     assert.equal(rendererReport.errorCode, 'ERR_FIXTURE');
     assert.equal(rendererReport.eventCount, 1);
+    assert.equal(rendererReport.invalidEventCount, 0);
+    assert.equal(rendererReport.invalidRequestCode, 'ERR_IPC_VALIDATION');
+    assert.equal(rendererReport.validatedValue, 'validated');
+    assert.ok(rendererReport.validationErrorCount >= 1);
     assert.equal(rendererEventCounts.get(run), 1);
 }
 

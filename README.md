@@ -5,7 +5,7 @@ Typed, bidirectional RPC and events over a dedicated Electron `MessagePort`.
 [![npm version](https://badge.fury.io/js/electron-ipc-socket.svg)](https://www.npmjs.com/package/electron-ipc-socket)
 [![Node CI](https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml/badge.svg)](https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml)
 
-Version 4 is an ESM-only redesign for Node.js 22.12 or newer and Electron 41, 42, or 43. It replaces the v3 `Socket` and `Transport` API with secure sessions built on `MessageChannelMain`.
+Version 4 is a dual ESM/CommonJS redesign for Node.js 22.12 or newer and Electron 41, 42, or 43. It replaces the v3 `Socket` and `Transport` API with secure sessions built on `MessageChannelMain`.
 
 ```sh
 npm install electron-ipc-socket
@@ -40,7 +40,45 @@ export type AppContract = {
 };
 ```
 
-The contract exists only at compile time. IPC input is untrusted data: handlers must perform runtime validation before using a payload. Payloads and results must also be supported by the structured clone algorithm; functions, promises, symbols, and Electron objects cannot be sent.
+The type contract rejects non-`Procedure` request entries and non-string route keys, but types alone do not inspect runtime IPC data. Payloads and results must also be supported by the structured clone algorithm; functions, promises, symbols, and Electron objects cannot be sent.
+
+## Optional runtime validation
+
+For untrusted payloads, provide a complete [Standard Schema V1](https://standardschema.dev/schema) validation tree. The package accepts schemas from Standard Schema-compatible libraries without depending on one. Every request needs input and output schemas, and every event needs a payload schema on both sides:
+
+```ts
+// validation.ts
+import { defineContractValidation } from 'electron-ipc-socket';
+import type { AppContract } from './contract.js';
+import { schemas } from './schemas.js';
+
+export const validation = defineContractValidation<AppContract>({
+    main: {
+        requests: {
+            readPreferences: {
+                input: schemas.void,
+                output: schemas.preferences,
+            },
+            savePreferences: {
+                input: schemas.preferences,
+                output: schemas.void,
+            },
+        },
+        events: { rendererReady: schemas.void },
+    },
+    renderer: {
+        requests: {
+            confirm: {
+                input: schemas.confirmation,
+                output: schemas.boolean,
+            },
+        },
+        events: { preferencesChanged: schemas.preferences },
+    },
+});
+```
+
+`schemas` may contain synchronous or asynchronous Standard Schema V1 validators. Validation occurs only when data is received, and the parsed schema value is passed to the handler, listener, or caller. Pass the same definition to both sessions for validation in both directions; it is never sent through preload or IPC.
 
 ## Main process
 
@@ -51,6 +89,7 @@ Create one session for each `(WebContents, channel)` pair. Authorization is mand
 import { BrowserWindow } from 'electron';
 import { createMainSession } from 'electron-ipc-socket/main';
 import type { AppContract } from './contract.js';
+import { validation } from './validation.js';
 
 const window = new BrowserWindow({
     webPreferences: {
@@ -66,15 +105,12 @@ const session = createMainSession<AppContract>({
     webContents: window.webContents,
     authorize: ({ origin, url }) =>
         origin === 'app://local' && url === 'app://local/index.html',
+    validation,
 });
 
 session.handle('readPreferences', () => ({ theme: 'dark' }));
 session.handle('savePreferences', (payload, context) => {
-    // Validate payload before writing it.
-    if (payload?.theme !== 'light' && payload?.theme !== 'dark') {
-        throw new TypeError('Invalid theme');
-    }
-
+    // payload is the parsed savePreferences input.
     context.signal.throwIfAborted();
 });
 
@@ -104,10 +140,22 @@ exposeBridge({
 });
 ```
 
-This package publishes ESM only, but sandboxed Electron preloads cannot load ESM directly. Bundle the preload to CommonJS and leave Electron external:
+The package publishes a CommonJS preload export, but [Electron's sandbox](https://www.electronjs.org/docs/latest/tutorial/sandbox) exposes only a restricted `require` that cannot load arbitrary package modules, and [sandboxed preloads cannot use ESM](https://www.electronjs.org/docs/latest/tutorial/esm). A sandboxed application must therefore bundle its preload even when the source uses CommonJS:
+
+```ts
+// preload.cts
+import preload = require('electron-ipc-socket/preload');
+
+preload.exposeBridge({
+    channel: 'application',
+    key: 'applicationIpc',
+});
+```
+
+Bundle it to one CommonJS file and leave Electron external:
 
 ```sh
-esbuild src/preload.ts \
+esbuild src/preload.cts \
     --bundle \
     --platform=node \
     --format=cjs \
@@ -127,6 +175,7 @@ import type { PreloadBridge } from 'electron-ipc-socket';
 import { RemoteError } from 'electron-ipc-socket';
 import { createRendererSession } from 'electron-ipc-socket/renderer';
 import type { AppContract } from './contract.js';
+import { validation } from './validation.js';
 
 declare global {
     interface Window {
@@ -134,7 +183,9 @@ declare global {
     }
 }
 
-const session = createRendererSession<AppContract>(window.applicationIpc);
+const session = createRendererSession<AppContract>(window.applicationIpc, {
+    validation,
+});
 
 session.handle('confirm', ({ message }) => window.confirm(message));
 await session.ready;
@@ -193,6 +244,26 @@ throw new RpcError('ERR_NOT_ALLOWED', 'This operation is not allowed');
 
 Callers receive `RemoteError` containing `remoteName`, `message`, and `code`. Remote stack traces are never transmitted. Other thrown values are reduced to a safe name and message.
 
+Failed request validation is reported locally through `onError` and returned to the caller as a sanitized `RemoteError` with code `ERR_IPC_VALIDATION`. Failed result validation rejects the local invocation with `ValidationError`. Failed event validation reports `ValidationError` through `onError`, drops the event, and does not consume a `once` listener. Standard Schema issue details remain in the receiving process and are never transmitted.
+
+## Module formats
+
+Every entry point supports ESM `import` and CommonJS `require` through conditional exports:
+
+```js
+// ESM
+import { RpcError } from 'electron-ipc-socket';
+import { createMainSession } from 'electron-ipc-socket/main';
+```
+
+```js
+// CommonJS
+const { RpcError } = require('electron-ipc-socket');
+const { createMainSession } = require('electron-ipc-socket/main');
+```
+
+The root package remains `"type": "module"`; `require` resolves to the separate CommonJS build. Both builds share public error branding and main-session channel ownership when they are loaded in the same process.
+
 ## Migrate from v3
 
 Version 4 intentionally has no v3 compatibility entry point.
@@ -215,7 +286,7 @@ Consumers that cannot migrate must remain on v3.
 
 - Node.js `>=22.12.0`
 - Electron `>=41 <44`
-- ESM application and renderer code
+- ESM and CommonJS application code
 - Bundled CommonJS sandbox preload
 
 The release test matrix covers Electron 41.10.5, 42.9.0, and 43.4.0. Delivery is ordered and at most once while connected; there is no persistence or event replay.

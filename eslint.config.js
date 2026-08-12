@@ -21,6 +21,12 @@ export default tseslint.config(
         },
     },
     {
+        files: ['test/electron/preload.cts'],
+        rules: {
+            '@typescript-eslint/no-require-imports': 'off',
+        },
+    },
+    {
         files: ['**/*.js', '**/*.mjs'],
         languageOptions: {
             globals: {

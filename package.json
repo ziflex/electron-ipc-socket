@@ -3,24 +3,49 @@
     "version": "4.0.0",
     "description": "Typed bidirectional MessagePort RPC sessions for Electron.",
     "type": "module",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/esm/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js"
+            "import": {
+                "types": "./dist/esm/index.d.ts",
+                "default": "./dist/esm/index.js"
+            },
+            "require": {
+                "types": "./dist/cjs/index.d.ts",
+                "default": "./dist/cjs/index.js"
+            }
         },
         "./main": {
-            "types": "./dist/main.d.ts",
-            "import": "./dist/main.js"
+            "import": {
+                "types": "./dist/esm/main.d.ts",
+                "default": "./dist/esm/main.js"
+            },
+            "require": {
+                "types": "./dist/cjs/main.d.ts",
+                "default": "./dist/cjs/main.js"
+            }
         },
         "./preload": {
-            "types": "./dist/preload.d.ts",
-            "import": "./dist/preload.js"
+            "import": {
+                "types": "./dist/esm/preload.d.ts",
+                "default": "./dist/esm/preload.js"
+            },
+            "require": {
+                "types": "./dist/cjs/preload.d.ts",
+                "default": "./dist/cjs/preload.js"
+            }
         },
         "./renderer": {
-            "types": "./dist/renderer.d.ts",
-            "import": "./dist/renderer.js"
+            "import": {
+                "types": "./dist/esm/renderer.d.ts",
+                "default": "./dist/esm/renderer.js"
+            },
+            "require": {
+                "types": "./dist/cjs/renderer.d.ts",
+                "default": "./dist/cjs/renderer.js"
+            }
         },
         "./package.json": "./package.json"
     },
@@ -32,7 +57,7 @@
     ],
     "sideEffects": false,
     "scripts": {
-        "build": "npm run clean && tsc -p tsconfig.build.json",
+        "build": "npm run clean && tsc -p tsconfig.build.json && node scripts/build-cjs.mjs",
         "check": "npm run format && npm run typecheck && npm run lint && npm run test && npm run docs && npm run package:smoke",
         "clean": "node scripts/clean.mjs",
         "docs": "typedoc",
@@ -44,7 +69,7 @@
         "test": "npm run test:unit && npm run test:types",
         "test:electron": "npm run build && tsc -p test/electron/tsconfig.json && node scripts/electron-fixture.mjs",
         "test:types": "tsc -p test/types/tsconfig.json",
-        "test:unit": "node --import tsx --test test/unit/endpoint.test.ts",
+        "test:unit": "node --import tsx --test test/unit/*.test.ts",
         "typecheck": "tsc -p tsconfig.json"
     },
     "engines": {

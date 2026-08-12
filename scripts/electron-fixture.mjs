@@ -59,7 +59,7 @@ try {
     await Promise.all([
         build({
             bundle: true,
-            entryPoints: [new URL('preload.ts', fixtureSource).pathname],
+            entryPoints: [new URL('preload.cts', fixtureSource).pathname],
             external: ['electron'],
             format: 'cjs',
             outfile: join(temporary, 'preload.cjs'),
