@@ -1,141 +1,121 @@
-import { Disposable, protect } from 'disposable-class';
-import { nanoid } from 'nanoid';
-import { DisposedError } from './errors/disposed';
-import { RequiredError } from './errors/required';
-import { InvalidInputError, InvalidOutputError } from './errors/transport';
-import { Subscriber, Subscription } from './observable';
-import { requires } from './utils/assertions';
+import { ConnectionError } from './errors.js';
 
-export type TransportInputListener = (...args: any[]) => void;
-export interface TransportInput {
-    on(event: string | symbol, listener: TransportInputListener): this;
-    once(event: string | symbol, listener: TransportInputListener): this;
-    removeListener(
-        event: string | symbol,
-        listener: TransportInputListener,
-    ): this;
-    removeAllListeners(event?: string | symbol): this;
+export type MessageListener = (message: unknown) => void;
+export type StateChangeListener = (connected: boolean) => void;
+export type TransportErrorListener = (error: Error) => void;
+
+export interface Connection {
+    close(): void;
+    postMessage(message: unknown): void;
+    subscribeClose(listener: () => void): () => void;
+    subscribeError(listener: TransportErrorListener): () => void;
+    subscribeMessage(listener: MessageListener): () => void;
 }
 
-export interface TransportOutput {
-    send(channel: string | symbol, ...args: any[]): void;
+export interface SessionTransport {
+    readonly isConnected: boolean;
+    close(): void;
+    postMessage(message: unknown): void;
+    subscribeError(listener: TransportErrorListener): () => void;
+    subscribeMessage(listener: MessageListener): () => void;
+    subscribeState(listener: StateChangeListener): () => void;
 }
 
-/*
- * Represents a socket connection transport
- */
-export class Transport extends Disposable {
-    private __input: TransportInput;
+export class ReconnectableTransport implements SessionTransport {
+    private connection?: Connection;
+    private connectionSubscriptions: Array<() => void> = [];
+    private readonly errorListeners = new Set<TransportErrorListener>();
+    private readonly messageListeners = new Set<MessageListener>();
+    private readonly stateListeners = new Set<StateChangeListener>();
+    private epoch = 0;
+    private disposed = false;
 
-    private __output: TransportOutput;
-
-    private __listeners?: {
-        [id: string]: {
-            channel: string | symbol;
-            fn: TransportInputListener;
-        };
-    };
-
-    constructor(
-        input: TransportInput | (TransportInput & TransportOutput),
-        output?: TransportOutput,
-    ) {
-        super();
-
-        const int = input;
-        let out = output;
-
-        if (int == null) {
-            throw new RequiredError('input');
-        }
-
-        if (out == null) {
-            out = int as TransportOutput;
-        }
-
-        if (
-            typeof int.on !== 'function' ||
-            typeof int.once !== 'function' ||
-            typeof int.removeAllListeners !== 'function' ||
-            typeof int.removeListener !== 'function'
-        ) {
-            throw new InvalidInputError();
-        }
-
-        if (typeof out.send !== 'function') {
-            throw new InvalidOutputError();
-        }
-
-        this.__input = int;
-        this.__output = out;
-        this.__listeners = Object.create(null);
+    get isConnected(): boolean {
+        return this.connection !== undefined;
     }
 
-    /*
-     * Destroys the instance.
-     * After invoking the method, the instance cannot be used anymore.
-     */
-    public dispose(): void {
-        super.dispose();
-
-        if (this.__listeners) {
-            Object.keys(this.__listeners).forEach((id: string) => {
-                this.__unsubscribe(id);
-            });
-
-            delete this.__listeners;
-        }
-    }
-
-    /*
-     * Sends a data via an underlying output.
-     */
-    @protect({ err: true })
-    public send(channel: string, ...args: any[]): void {
-        requires('channel', channel);
-
-        this.__output.send(channel, ...args);
-    }
-
-    /*
-     * Registers an event listener.
-     */
-    @protect({ err: true })
-    public on(channel: string, subscriber: Subscriber): Subscription {
-        requires('channel', channel);
-        requires('subscriber', subscriber);
-
-        if (!this.__listeners) {
-            throw new DisposedError('Transport');
-        }
-
-        const listener = (_: any, ...args: any[]) => {
-            subscriber(args);
-        };
-
-        this.__input.on(channel, listener);
-
-        const id = nanoid();
-
-        this.__listeners[id] = {
-            channel,
-            fn: listener,
-        };
-
-        return this.__unsubscribe.bind(this, id);
-    }
-
-    private __unsubscribe(id: string): void {
-        if (!this.__listeners) {
+    replace(connection: Connection): void {
+        if (this.disposed) {
+            connection.close();
             return;
         }
 
-        const pair = this.__listeners[id];
+        this.detach(true);
+        const epoch = ++this.epoch;
+        this.connection = connection;
+        this.connectionSubscriptions = [
+            connection.subscribeMessage((message) => {
+                if (this.epoch === epoch) {
+                    this.messageListeners.forEach((listener) =>
+                        listener(message),
+                    );
+                }
+            }),
+            connection.subscribeError((error) => {
+                if (this.epoch === epoch) {
+                    this.errorListeners.forEach((listener) => listener(error));
+                }
+            }),
+            connection.subscribeClose(() => {
+                if (this.epoch === epoch) {
+                    this.detach(false);
+                }
+            }),
+        ];
+        this.stateListeners.forEach((listener) => listener(true));
+    }
 
-        if (pair != null) {
-            this.__input.removeListener(pair.channel, pair.fn);
+    postMessage(message: unknown): void {
+        if (!this.connection) {
+            throw new ConnectionError();
         }
 
-        delete this.__listeners[id];
+        this.connection.postMessage(message);
+    }
+
+    subscribeMessage(listener: MessageListener): () => void {
+        this.messageListeners.add(listener);
+        return () => this.messageListeners.delete(listener);
+    }
+
+    subscribeState(listener: StateChangeListener): () => void {
+        this.stateListeners.add(listener);
+        return () => this.stateListeners.delete(listener);
+    }
+
+    subscribeError(listener: TransportErrorListener): () => void {
+        this.errorListeners.add(listener);
+        return () => this.errorListeners.delete(listener);
+    }
+
+    close(): void {
+        if (this.disposed) {
+            return;
+        }
+
+        this.disposed = true;
+        this.detach(true);
+        this.messageListeners.clear();
+        this.stateListeners.clear();
+        this.errorListeners.clear();
+    }
+
+    private detach(closeConnection: boolean): void {
+        const wasConnected = this.connection !== undefined;
+        const connection = this.connection;
+
+        this.connection = undefined;
+        this.epoch++;
+        this.connectionSubscriptions.splice(0).forEach((unsubscribe) => {
+            unsubscribe();
+        });
+
+        if (closeConnection) {
+            connection?.close();
+        }
+
+        if (wasConnected) {
+            this.stateListeners.forEach((listener) => listener(false));
+        }
     }
 }

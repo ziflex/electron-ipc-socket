@@ -1,316 +1,216 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>electron-ipc-socket</title>
-	<meta name="description" content="">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">electron-ipc-socket</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="globals.html">Globals</a>
-				</li>
-			</ul>
-			<h1> electron-ipc-socket</h1>
-		</div>
-	</div>
-</header>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>electron-ipc-socket - v4.0.0</title><meta name="description" content="Documentation for electron-ipc-socket"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">electron-ipc-socket - v4.0.0</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
 <div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<a href="#electron-ipc-socket" id="electron-ipc-socket" style="color: inherit; text-decoration: none;">
-					<h1>electron-ipc-socket</h1>
-				</a>
-				<blockquote>
-					<p>Event based communication</p>
-				</blockquote>
-				<p>Response-request abstraction on top of Electron IPC system.</p>
-				<p><a href="https://www.npmjs.com/package/electron-ipc-socket"><img src="https://badge.fury.io/js/electron-ipc-socket.svg" alt="npm version"></a>
-				<a href="https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg"><img src="https://github.com/ziflex/electron-ipc-socket/workflows/Node%20CI/badge.svg" alt="Actions Status"></a></p>
-				<pre><code class="language-sh">    npm install --save electron-ipc-socket</code></pre>
-				<a href="#motivation" id="motivation" style="color: inherit; text-decoration: none;">
-					<h2>Motivation</h2>
-				</a>
-				<p>Events are good, but sometimes you want something more than just &#39;emit and forget&#39;.
-				Current package provides an abstraction on top of Electron IPC system that allows you to make &#39;request-response&#39; communication.</p>
-				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
-					<h2>Usage</h2>
-				</a>
-				<a href="#events" id="events" style="color: inherit; text-decoration: none;">
-					<h3>Events</h3>
-				</a>
-				<pre><code class="language-typescript"><span class="hljs-comment">// main-process.js</span>
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>electron-ipc-socket - v4.0.0</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="electron-ipc-socket" class="tsd-anchor-link">electron-ipc-socket<a href="#electron-ipc-socket" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Typed, bidirectional RPC and events over a dedicated Electron <code>MessagePort</code>.</p>
+<p><a href="https://www.npmjs.com/package/electron-ipc-socket"><img src="https://badge.fury.io/js/electron-ipc-socket.svg" alt="npm version"></a>
+<a href="https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml"><img src="https://github.com/ziflex/electron-ipc-socket/actions/workflows/nodejs.yml/badge.svg" alt="Node CI"></a></p>
+<p>Version 4 is a dual ESM/CommonJS redesign for Node.js 22.12 or newer and Electron 41, 42, or 43. It replaces the v3 <code>Socket</code> and <code>Transport</code> API with secure sessions built on <code>MessageChannelMain</code>.</p>
+<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-2">electron-ipc-socket</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">import</span> { ipcMain, BrowserWindow } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket, Transport, Event, InboundRequest } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
-<span class="hljs-keyword">import</span> fs <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>;
+<h2 id="define-a-contract" class="tsd-anchor-link">Define a contract<a href="#define-a-contract" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>A contract describes what each side receives. <code>main.requests</code> and <code>main.events</code> are handled by the main process; <code>renderer.requests</code> and <code>renderer.events</code> are handled by the renderer.</p>
+<pre><code class="ts"><span class="hl-3">// contract.ts</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-4">type</span><span class="hl-1"> { </span><span class="hl-5">Procedure</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">export</span><span class="hl-1"> </span><span class="hl-6">type</span><span class="hl-1"> </span><span class="hl-7">AppContract</span><span class="hl-1"> = {</span><br/><span class="hl-1">    </span><span class="hl-5">main</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-5">requests</span><span class="hl-1">: {</span><br/><span class="hl-1">            </span><span class="hl-5">readPreferences</span><span class="hl-1">: </span><span class="hl-7">Procedure</span><span class="hl-1">&lt;</span><span class="hl-7">void</span><span class="hl-1">, { </span><span class="hl-5">theme</span><span class="hl-1">: </span><span class="hl-2">&#39;light&#39;</span><span class="hl-1"> | </span><span class="hl-2">&#39;dark&#39;</span><span class="hl-1"> }&gt;;</span><br/><span class="hl-1">            </span><span class="hl-5">savePreferences</span><span class="hl-1">: </span><span class="hl-7">Procedure</span><span class="hl-1">&lt;{ </span><span class="hl-5">theme</span><span class="hl-1">: </span><span class="hl-2">&#39;light&#39;</span><span class="hl-1"> | </span><span class="hl-2">&#39;dark&#39;</span><span class="hl-1"> }, </span><span class="hl-7">void</span><span class="hl-1">&gt;;</span><br/><span class="hl-1">        };</span><br/><span class="hl-1">        </span><span class="hl-5">events</span><span class="hl-1">: {</span><br/><span class="hl-1">            </span><span class="hl-5">rendererReady</span><span class="hl-1">: </span><span class="hl-7">void</span><span class="hl-1">;</span><br/><span class="hl-1">        };</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">    </span><span class="hl-5">renderer</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-5">requests</span><span class="hl-1">: {</span><br/><span class="hl-1">            </span><span class="hl-5">confirm</span><span class="hl-1">: </span><span class="hl-7">Procedure</span><span class="hl-1">&lt;{ </span><span class="hl-5">message</span><span class="hl-1">: </span><span class="hl-7">string</span><span class="hl-1"> }, </span><span class="hl-7">boolean</span><span class="hl-1">&gt;;</span><br/><span class="hl-1">        };</span><br/><span class="hl-1">        </span><span class="hl-5">events</span><span class="hl-1">: {</span><br/><span class="hl-1">            </span><span class="hl-5">preferencesChanged</span><span class="hl-1">: { </span><span class="hl-5">theme</span><span class="hl-1">: </span><span class="hl-2">&#39;light&#39;</span><span class="hl-1"> | </span><span class="hl-2">&#39;dark&#39;</span><span class="hl-1"> };</span><br/><span class="hl-1">        };</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">};</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
+<p>The type contract rejects non-<code>Procedure</code> request entries and non-string route keys, but types alone do not inspect runtime IPC data. Payloads and results must also be supported by the structured clone algorithm; functions, promises, symbols, and Electron objects cannot be sent.</p>
+<h2 id="optional-runtime-validation" class="tsd-anchor-link">Optional runtime validation<a href="#optional-runtime-validation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>For untrusted payloads, provide a complete <a href="https://standardschema.dev/schema">Standard Schema V1</a> validation tree. The package accepts schemas from Standard Schema-compatible libraries without depending on one. Every request needs input and output schemas, and every event needs a payload schema on both sides:</p>
+<pre><code class="ts"><span class="hl-3">// validation.ts</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">defineContractValidation</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-4">type</span><span class="hl-1"> { </span><span class="hl-5">AppContract</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./contract.js&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">schemas</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./schemas.js&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">export</span><span class="hl-1"> </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">validation</span><span class="hl-1"> = </span><span class="hl-0">defineContractValidation</span><span class="hl-1">&lt;</span><span class="hl-7">AppContract</span><span class="hl-1">&gt;({</span><br/><span class="hl-1">    </span><span class="hl-5">main:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-5">requests:</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-5">readPreferences:</span><span class="hl-1"> {</span><br/><span class="hl-1">                </span><span class="hl-5">input:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">void</span><span class="hl-1">,</span><br/><span class="hl-1">                </span><span class="hl-5">output:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">preferences</span><span class="hl-1">,</span><br/><span class="hl-1">            },</span><br/><span class="hl-1">            </span><span class="hl-5">savePreferences:</span><span class="hl-1"> {</span><br/><span class="hl-1">                </span><span class="hl-5">input:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">preferences</span><span class="hl-1">,</span><br/><span class="hl-1">                </span><span class="hl-5">output:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">void</span><span class="hl-1">,</span><br/><span class="hl-1">            },</span><br/><span class="hl-1">        },</span><br/><span class="hl-1">        </span><span class="hl-5">events:</span><span class="hl-1"> { </span><span class="hl-5">rendererReady:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">void</span><span class="hl-1"> },</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">    </span><span class="hl-5">renderer:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-5">requests:</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-5">confirm:</span><span class="hl-1"> {</span><br/><span class="hl-1">                </span><span class="hl-5">input:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">confirmation</span><span class="hl-1">,</span><br/><span class="hl-1">                </span><span class="hl-5">output:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">boolean</span><span class="hl-1">,</span><br/><span class="hl-1">            },</span><br/><span class="hl-1">        },</span><br/><span class="hl-1">        </span><span class="hl-5">events:</span><span class="hl-1"> { </span><span class="hl-5">preferencesChanged:</span><span class="hl-1"> </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">preferences</span><span class="hl-1"> },</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
+<p><code>schemas</code> may contain synchronous or asynchronous Standard Schema V1 validators. Validation occurs only when data is received, and the parsed schema value is passed to the handler, listener, or caller. Pass the same definition to both sessions for validation in both directions; it is never sent through preload or IPC.</p>
+<h2 id="main-process" class="tsd-anchor-link">Main process<a href="#main-process" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Create one session for each <code>(WebContents, channel)</code> pair. Authorization is mandatory and synchronous. The library also verifies that the handshake came from that exact live <code>WebContents</code>, its current main frame, and the URL and origin observed during authorization.</p>
+<pre><code class="ts"><span class="hl-3">// main.ts</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">BrowserWindow</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">createMainSession</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket/main&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-4">type</span><span class="hl-1"> { </span><span class="hl-5">AppContract</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./contract.js&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">validation</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./validation.js&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">window</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">BrowserWindow</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-5">webPreferences:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-5">contextIsolation:</span><span class="hl-1"> </span><span class="hl-6">true</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-5">nodeIntegration:</span><span class="hl-1"> </span><span class="hl-6">false</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-5">preload:</span><span class="hl-1"> </span><span class="hl-2">&#39;/absolute/path/to/preload.cjs&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-5">sandbox:</span><span class="hl-1"> </span><span class="hl-6">true</span><span class="hl-1">,</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">session</span><span class="hl-1"> = </span><span class="hl-0">createMainSession</span><span class="hl-1">&lt;</span><span class="hl-7">AppContract</span><span class="hl-1">&gt;({</span><br/><span class="hl-1">    </span><span class="hl-5">channel:</span><span class="hl-1"> </span><span class="hl-2">&#39;application&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">webContents:</span><span class="hl-1"> </span><span class="hl-5">window</span><span class="hl-1">.</span><span class="hl-5">webContents</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">authorize</span><span class="hl-5">:</span><span class="hl-1"> ({ </span><span class="hl-5">origin</span><span class="hl-1">, </span><span class="hl-5">url</span><span class="hl-1"> }) </span><span class="hl-6">=&gt;</span><br/><span class="hl-1">        </span><span class="hl-5">origin</span><span class="hl-1"> === </span><span class="hl-2">&#39;app://local&#39;</span><span class="hl-1"> &amp;&amp; </span><span class="hl-5">url</span><span class="hl-1"> === </span><span class="hl-2">&#39;app://local/index.html&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">validation</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">handle</span><span class="hl-1">(</span><span class="hl-2">&#39;readPreferences&#39;</span><span class="hl-1">, () </span><span class="hl-6">=&gt;</span><span class="hl-1"> ({ </span><span class="hl-5">theme:</span><span class="hl-1"> </span><span class="hl-2">&#39;dark&#39;</span><span class="hl-1"> }));</span><br/><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">handle</span><span class="hl-1">(</span><span class="hl-2">&#39;savePreferences&#39;</span><span class="hl-1">, (</span><span class="hl-5">payload</span><span class="hl-1">, </span><span class="hl-5">context</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-3">// payload is the parsed savePreferences input.</span><br/><span class="hl-1">    </span><span class="hl-5">context</span><span class="hl-1">.</span><span class="hl-5">signal</span><span class="hl-1">.</span><span class="hl-0">throwIfAborted</span><span class="hl-1">();</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;rendererReady&#39;</span><span class="hl-1">, () </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">send</span><span class="hl-1">(</span><span class="hl-2">&#39;preferencesChanged&#39;</span><span class="hl-1">, { </span><span class="hl-5">theme:</span><span class="hl-1"> </span><span class="hl-2">&#39;dark&#39;</span><span class="hl-1"> });</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-5">ready</span><span class="hl-1">;</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">accepted</span><span class="hl-1"> = </span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">invoke</span><span class="hl-1">(</span><span class="hl-2">&#39;confirm&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">    </span><span class="hl-5">message:</span><span class="hl-1"> </span><span class="hl-2">&#39;Continue?&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-socket.open(<span class="hljs-string">'main-win'</span>);
+<p>Handlers registered on a main session survive renderer reloads. A disconnect rejects pending calls and aborts active handler contexts; a subsequent authorized handshake reconnects the same session. Events sent while disconnected throw immediately and are not queued or replayed.</p>
+<h2 id="preload-bridge" class="tsd-anchor-link">Preload bridge<a href="#preload-bridge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The preload owns the handshake. It exposes only a small bridge for the dedicated port and never exposes <code>ipcRenderer</code>.</p>
+<pre><code class="ts"><span class="hl-3">// preload.ts</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">exposeBridge</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket/preload&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-0">exposeBridge</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-5">channel:</span><span class="hl-1"> </span><span class="hl-2">&#39;application&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">key:</span><span class="hl-1"> </span><span class="hl-2">&#39;applicationIpc&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-socket.onEvent(<span class="hljs-string">'ready'</span>, <span class="hljs-function">(<span class="hljs-params">evt: Event</span>) =&gt;</span> {
-    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Renderer process is ready'</span>);
-});</code></pre>
-				<pre><code class="language-typescript"><span class="hljs-comment">// renderer-process.js</span>
+<p>The package publishes a CommonJS preload export, but <a href="https://www.electronjs.org/docs/latest/tutorial/sandbox">Electron's sandbox</a> exposes only a restricted <code>require</code> that cannot load arbitrary package modules, and <a href="https://www.electronjs.org/docs/latest/tutorial/esm">sandboxed preloads cannot use ESM</a>. A sandboxed application must therefore bundle its preload even when the source uses CommonJS:</p>
+<pre><code class="ts"><span class="hl-3">// preload.cts</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-5">preload</span><span class="hl-1"> = </span><span class="hl-4">require</span><span class="hl-1">(</span><span class="hl-2">&#39;electron-ipc-socket/preload&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-5">preload</span><span class="hl-1">.</span><span class="hl-0">exposeBridge</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-5">channel:</span><span class="hl-1"> </span><span class="hl-2">&#39;application&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">key:</span><span class="hl-1"> </span><span class="hl-2">&#39;applicationIpc&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
+<p>Bundle it to one CommonJS file and leave Electron external:</p>
+<pre><code class="sh"><span class="hl-0">esbuild</span><span class="hl-1"> </span><span class="hl-2">src/preload.cts</span><span class="hl-1"> </span><span class="hl-9">\</span><br/><span class="hl-1">    </span><span class="hl-6">--bundle</span><span class="hl-1"> </span><span class="hl-9">\</span><br/><span class="hl-1">    </span><span class="hl-6">--platform=node</span><span class="hl-1"> </span><span class="hl-9">\</span><br/><span class="hl-1">    </span><span class="hl-6">--format=cjs</span><span class="hl-1"> </span><span class="hl-9">\</span><br/><span class="hl-1">    </span><span class="hl-6">--external:electron</span><span class="hl-1"> </span><span class="hl-9">\</span><br/><span class="hl-1">    </span><span class="hl-6">--outfile=dist/preload.cjs</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
+<p>Point <code>webPreferences.preload</code> at the resulting absolute <code>preload.cjs</code> path. Keep <code>sandbox: true</code>, <code>contextIsolation: true</code>, and <code>nodeIntegration: false</code>.</p>
+<h2 id="renderer" class="tsd-anchor-link">Renderer<a href="#renderer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The renderer wrapper owns RPC handlers, <code>AbortSignal</code> objects, and reconstructed errors in the renderer world rather than in preload.</p>
+<pre><code class="ts"><span class="hl-3">// renderer.ts</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-4">type</span><span class="hl-1"> { </span><span class="hl-5">PreloadBridge</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">RemoteError</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">createRendererSession</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket/renderer&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> </span><span class="hl-4">type</span><span class="hl-1"> { </span><span class="hl-5">AppContract</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./contract.js&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">validation</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;./validation.js&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">declare</span><span class="hl-1"> </span><span class="hl-5">global</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">interface</span><span class="hl-1"> </span><span class="hl-7">Window</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-5">applicationIpc</span><span class="hl-1">: </span><span class="hl-7">PreloadBridge</span><span class="hl-1">;</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">session</span><span class="hl-1"> = </span><span class="hl-0">createRendererSession</span><span class="hl-1">&lt;</span><span class="hl-7">AppContract</span><span class="hl-1">&gt;(</span><span class="hl-5">window</span><span class="hl-1">.</span><span class="hl-5">applicationIpc</span><span class="hl-1">, {</span><br/><span class="hl-1">    </span><span class="hl-5">validation</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">handle</span><span class="hl-1">(</span><span class="hl-2">&#39;confirm&#39;</span><span class="hl-1">, ({ </span><span class="hl-5">message</span><span class="hl-1"> }) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">window</span><span class="hl-1">.</span><span class="hl-0">confirm</span><span class="hl-1">(</span><span class="hl-5">message</span><span class="hl-1">));</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-5">ready</span><span class="hl-1">;</span><br/><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">send</span><span class="hl-1">(</span><span class="hl-2">&#39;rendererReady&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-4">try</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">preferences</span><span class="hl-1"> = </span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">invoke</span><span class="hl-1">(</span><span class="hl-2">&#39;readPreferences&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">    </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">preferences</span><span class="hl-1">.</span><span class="hl-5">theme</span><span class="hl-1">);</span><br/><span class="hl-1">} </span><span class="hl-4">catch</span><span class="hl-1"> (</span><span class="hl-5">error</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-4">if</span><span class="hl-1"> (</span><span class="hl-5">error</span><span class="hl-1"> </span><span class="hl-6">instanceof</span><span class="hl-1"> </span><span class="hl-7">RemoteError</span><span class="hl-1">) {</span><br/><span class="hl-1">        </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">error</span><span class="hl-1">(</span><span class="hl-5">error</span><span class="hl-1">.</span><span class="hl-5">remoteName</span><span class="hl-1">, </span><span class="hl-5">error</span><span class="hl-1">.</span><span class="hl-5">code</span><span class="hl-1">, </span><span class="hl-5">error</span><span class="hl-1">.</span><span class="hl-5">message</span><span class="hl-1">);</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
 
-socket.open(<span class="hljs-string">'main-win'</span>);
+<h2 id="session-api" class="tsd-anchor-link">Session API<a href="#session-api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Both main and renderer sessions provide the same directional API:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ready</code></td>
+<td>Promise for the current or next connection.</td>
+</tr>
+<tr>
+<td><code>isConnected</code></td>
+<td>Whether a dedicated port is currently attached.</td>
+</tr>
+<tr>
+<td><code>invoke(route, payload?, options?)</code></td>
+<td>Call a request handled by the other side.</td>
+</tr>
+<tr>
+<td><code>handle(route, handler)</code></td>
+<td>Register one local request handler; returns an unsubscribe function.</td>
+</tr>
+<tr>
+<td><code>send(event, payload?)</code></td>
+<td>Send a one-way event to the other side.</td>
+</tr>
+<tr>
+<td><code>on(event, listener)</code></td>
+<td>Subscribe to a local event; returns an unsubscribe function.</td>
+</tr>
+<tr>
+<td><code>once(event, listener)</code></td>
+<td>Subscribe for one event; returns an unsubscribe function.</td>
+</tr>
+<tr>
+<td><code>onStateChange(listener)</code></td>
+<td>Observe connection state; immediately receives the current state.</td>
+</tr>
+<tr>
+<td><code>onError(listener)</code></td>
+<td>Observe malformed messages and transport errors.</td>
+</tr>
+<tr>
+<td><code>dispose()</code></td>
+<td>Close the session and deterministically clear handlers, calls, timers, and listeners.</td>
+</tr>
+</tbody>
+</table>
+<p>The default invocation timeout is 60 seconds. Override it for one call, disable it with <code>false</code>, and/or attach a cancellation signal:</p>
+<pre><code class="ts"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">controller</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">AbortController</span><span class="hl-1">();</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-8">result</span><span class="hl-1"> = </span><span class="hl-5">session</span><span class="hl-1">.</span><span class="hl-0">invoke</span><span class="hl-1">(</span><span class="hl-2">&#39;readPreferences&#39;</span><span class="hl-1">, </span><span class="hl-6">undefined</span><span class="hl-1">, {</span><br/><span class="hl-1">    </span><span class="hl-5">signal:</span><span class="hl-1"> </span><span class="hl-5">controller</span><span class="hl-1">.</span><span class="hl-5">signal</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">timeout:</span><span class="hl-1"> </span><span class="hl-10">5_000</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-5">controller</span><span class="hl-1">.</span><span class="hl-0">abort</span><span class="hl-1">();</span><br/><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">result</span><span class="hl-1">;</span>
+</code><button type="button">Copy</button></pre>
 
-socket.send(<span class="hljs-string">'ready'</span>);</code></pre>
-				<a href="#request-response" id="request-response" style="color: inherit; text-decoration: none;">
-					<h3>Request-response</h3>
-				</a>
-				<pre><code class="language-typescript"><span class="hljs-comment">// main-process.js</span>
+<p>Cancellation aborts the remote handler's <code>context.signal</code>. Late replies are ignored, and every timeout and signal listener is removed when a call settles.</p>
+<p>Handlers may throw <code>RpcError</code> to expose a stable error code:</p>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">RpcError</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">throw</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">RpcError</span><span class="hl-1">(</span><span class="hl-2">&#39;ERR_NOT_ALLOWED&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;This operation is not allowed&#39;</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">import</span> { ipcMain, BrowserWindow } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket, Transport, Event, InboundRequest } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
-<span class="hljs-keyword">import</span> fs <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>;
+<p>Callers receive <code>RemoteError</code> containing <code>remoteName</code>, <code>message</code>, and <code>code</code>. Remote stack traces are never transmitted. Other thrown values are reduced to a safe name and message.</p>
+<p>Failed request validation is reported locally through <code>onError</code> and returned to the caller as a sanitized <code>RemoteError</code> with code <code>ERR_IPC_VALIDATION</code>. Failed result validation rejects the local invocation with <code>ValidationError</code>. Failed event validation reports <code>ValidationError</code> through <code>onError</code>, drops the event, and does not consume a <code>once</code> listener. Standard Schema issue details remain in the receiving process and are never transmitted.</p>
+<h2 id="module-formats" class="tsd-anchor-link">Module formats<a href="#module-formats" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Every entry point supports ESM <code>import</code> and CommonJS <code>require</code> through conditional exports:</p>
+<pre><code class="js"><span class="hl-3">// ESM</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">RpcError</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">;</span><br/><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">createMainSession</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;electron-ipc-socket/main&#39;</span><span class="hl-1">;</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
+<pre><code class="js"><span class="hl-3">// CommonJS</span><br/><span class="hl-6">const</span><span class="hl-1"> { </span><span class="hl-8">RpcError</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;electron-ipc-socket&#39;</span><span class="hl-1">);</span><br/><span class="hl-6">const</span><span class="hl-1"> { </span><span class="hl-8">createMainSession</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;electron-ipc-socket/main&#39;</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
 
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
-
-socket.open(<span class="hljs-string">'main-win'</span>);
-
-socket.onRequest(<span class="hljs-string">'ping'</span>, <span class="hljs-function">(<span class="hljs-params">req: InboundRequest</span>) =&gt;</span> {
-    <span class="hljs-keyword">return</span> <span class="hljs-string">'pong'</span>;
-});</code></pre>
-				<pre><code class="language-typescript"><span class="hljs-comment">// renderer-process.js</span>
-
-<span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
-
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
-
-socket.open(<span class="hljs-string">'main-win'</span>);
-
-socket
-    .request(<span class="hljs-string">'ping'</span>)
-    .then(<span class="hljs-function"><span class="hljs-params">content</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(content))
-    .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> <span class="hljs-built_in">console</span>.error(err));</code></pre>
-				<a href="#async-request-handler" id="async-request-handler" style="color: inherit; text-decoration: none;">
-					<h5>Async request handler</h5>
-				</a>
-				<pre><code class="language-typescript"><span class="hljs-comment">// main-process.js</span>
-
-<span class="hljs-keyword">import</span> { ipcMain, BrowserWindow } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket, Transport, Event, InboundRequest } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
-<span class="hljs-keyword">import</span> fs <span class="hljs-keyword">from</span> <span class="hljs-string">'fs'</span>;
-<span class="hljs-keyword">import</span> util <span class="hljs-keyword">from</span> <span class="hljs-string">'util'</span>;
-
-<span class="hljs-keyword">const</span> read = util.promisify(fs.read);
-<span class="hljs-keyword">const</span> win = <span class="hljs-keyword">new</span> BrowserWindow();
-
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(<span class="hljs-keyword">new</span> Transport(ipcMain, win));
-
-socket.open(<span class="hljs-string">'main-win'</span>);
-
-socket.onRequest(<span class="hljs-string">'file'</span>, <span class="hljs-keyword">async</span> (req: InboundRequest) =&gt; {
-    <span class="hljs-keyword">return</span> read(req.data);
-});</code></pre>
-				<pre><code class="language-typescript"><span class="hljs-comment">// renderer-process.js</span>
-
-<span class="hljs-keyword">import</span> { ipcRenderer } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron'</span>;
-<span class="hljs-keyword">import</span> { Socket } <span class="hljs-keyword">from</span> <span class="hljs-string">'electron-ipc-socket'</span>;
-
-<span class="hljs-keyword">const</span> socket = <span class="hljs-keyword">new</span> Socket(ipcRenderer);
-
-socket.open(<span class="hljs-string">'main-win'</span>);
-
-socket
-    .request(<span class="hljs-string">'file'</span>, <span class="hljs-string">'package.json'</span>)
-    .then(<span class="hljs-function"><span class="hljs-params">content</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(content))
-    .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> <span class="hljs-built_in">console</span>.error(err));</code></pre>
-			</div>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Internals</span>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_event_.html">"event"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_inbound_request_.html">"inbound-<wbr>request"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_index_.html">"index"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_observable_.html">"observable"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_outbound_request_.html">"outbound-<wbr>request"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_socket_.html">"socket"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_transport_.html">"transport"</a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_connection_.html">"errors/connection"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_disposed_.html">"errors/disposed"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_exception_.html">"errors/exception"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_invalid_type_.html">"errors/invalid-<wbr>type"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_not_found_.html">"errors/not-<wbr>found"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_required_.html">"errors/required"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_socket_.html">"errors/socket"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_timeout_.html">"errors/timeout"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_errors_transport_.html">"errors/transport"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_utils_assertions_.html">"utils/assertions"</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
-</body>
-</html>
+<p>The root package remains <code>&quot;type&quot;: &quot;module&quot;</code>; <code>require</code> resolves to the separate CommonJS build. Both builds share public error branding and main-session channel ownership when they are loaded in the same process.</p>
+<h2 id="migrate-from-v3" class="tsd-anchor-link">Migrate from v3<a href="#migrate-from-v3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Version 4 intentionally has no v3 compatibility entry point.</p>
+<table>
+<thead>
+<tr>
+<th>v3</th>
+<th>v4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>new Socket(new Transport(...))</code></td>
+<td><code>createMainSession</code>, bundled <code>exposeBridge</code>, and <code>createRendererSession</code></td>
+</tr>
+<tr>
+<td><code>socket.open(channel)</code></td>
+<td>Pass the same <code>channel</code> to <code>createMainSession</code> and <code>exposeBridge</code>; await <code>session.ready</code></td>
+</tr>
+<tr>
+<td><code>socket.request(name, data)</code></td>
+<td><code>session.invoke(name, data)</code></td>
+</tr>
+<tr>
+<td><code>socket.onRequest(name, handler)</code></td>
+<td><code>session.handle(name, handler)</code>; payload and cancellation context are separate arguments</td>
+</tr>
+<tr>
+<td><code>socket.send(name, data)</code></td>
+<td><code>session.send(name, data)</code></td>
+</tr>
+<tr>
+<td><code>socket.onEvent(name, handler)</code></td>
+<td><code>session.on(name, handler)</code> or <code>session.once(name, handler)</code></td>
+</tr>
+<tr>
+<td><code>Settings.timeout</code></td>
+<td><code>defaultTimeout</code> on session creation or <code>timeout</code> per invocation</td>
+</tr>
+<tr>
+<td><code>Settings.cleanup</code></td>
+<td>Removed; v4 cleans each timer and listener deterministically and has no polling interval</td>
+</tr>
+<tr>
+<td><code>socket.close()</code> / <code>socket.dispose()</code></td>
+<td><code>session.dispose()</code>; main sessions reconnect automatically across renderer reloads until disposed</td>
+</tr>
+</tbody>
+</table>
+<p>Consumers that cannot migrate must remain on v3.</p>
+<h2 id="compatibility" class="tsd-anchor-link">Compatibility<a href="#compatibility" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Node.js <code>&gt;=22.12.0</code></li>
+<li>Electron <code>&gt;=41 &lt;44</code></li>
+<li>ESM and CommonJS application code</li>
+<li>Bundled CommonJS sandbox preload</li>
+</ul>
+<p>The release test matrix covers Electron 41.10.5, 42.9.0, and 43.4.0. Delivery is ordered and at most once while connected; there is no persistence or event replay.</p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#electron-ipc-socket"><span>electron-<wbr/>ipc-<wbr/>socket</span></a>
+<ul>
+<li><a href="#define-a-contract"><span>Define a contract</span></a></li>
+<li><a href="#optional-runtime-validation"><span>Optional runtime validation</span></a></li>
+<li><a href="#main-process"><span>Main process</span></a></li>
+<li><a href="#preload-bridge"><span>Preload bridge</span></a></li>
+<li><a href="#renderer"><span>Renderer</span></a></li>
+<li><a href="#session-api"><span>Session <wbr/>API</span></a></li>
+<li><a href="#module-formats"><span>Module formats</span></a></li>
+<li><a href="#migrate-from-v3"><span>Migrate from v3</span></a></li>
+<li><a href="#compatibility"><span>Compatibility</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">electron-ipc-socket - v4.0.0</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
